@@ -6,4 +6,5 @@ export const createDecisionCase = input => model({ category: 'management', deadl
   disagreementTopics: [], investigationOptions: [], actionOptions: DECISION_ACTIONS.map(type => ({ type })),
   selectedAction: null, playerReasonTags: [], playerReasonText: '', delegatedTo: null,
   managerAttentionCost: 0, opportunityCosts: [], status: 'open', resultingOperationIds: [], outcomeIds: [],
-  retrospectiveAttribution: null }, input, ['id', 'title', 'openedAt']);
+  retrospectiveAttribution: null, actionHistory: [], overdue: false, overdueAt: null,
+  nextReviewAt: null, proposalDueAt: null, delegationProposal: null }, input, ['id', 'title', 'openedAt']);

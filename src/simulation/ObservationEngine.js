@@ -1,4 +1,4 @@
-import { createObservation } from '../domain/observation.js';
+import { createObservation, OBSERVATION_CATEGORIES } from '../domain/observation.js';
 import { createBelief } from '../domain/belief.js';
 import { addDays, clone, DAY_MS } from '../domain/validation.js';
 
@@ -15,9 +15,19 @@ export function availableObservations(observations, asOf) {
 export function sampleObservations(crops, profiles, date, dayIndex, random) {
   const result = [];
   for (const profile of profiles) {
-    if (dayIndex % profile.everyDays !== 0) continue;
+    if ((dayIndex - (profile.offsetDays ?? 0)) % profile.everyDays !== 0) continue;
     for (const crop of crops) {
       if (profile.productionUnitIds && !profile.productionUnitIds.includes(crop.productionUnitId)) continue;
+      if (profile.variable === 'stage') {
+        // A scout samples today's stage. It is visible only after report delivery.
+        // Alternate crop packs with different vocabularies need an explicit report schema.
+        if (!OBSERVATION_CATEGORIES.stage.includes(crop.stage)) continue;
+        result.push(createObservation({ id: `${profile.id}:${crop.id}:${date}`, productionUnitId: crop.productionUnitId,
+          sourceType: profile.sourceType, sourceId: profile.id, variable: 'stage', valueType: 'category', value: crop.stage,
+          unit: '', uncertainty: profile.uncertainty, coverage: 1, reliability: profile.reliability,
+          observedAt: date, availableAt: addDays(date, profile.delayDays), freshness: profile.freshness }));
+        continue;
+      }
       const value = crop.trueState[profile.variable];
       if (!Number.isFinite(value)) throw new TypeError(`Unknown observed crop variable: ${profile.variable}`);
       result.push(createObservation({ id: `${profile.id}:${crop.id}:${date}`, productionUnitId: crop.productionUnitId,
@@ -32,7 +42,7 @@ export function sampleObservations(crops, profiles, date, dayIndex, random) {
 
 /** Actors receive the same available evidence, but can weigh its sources differently. */
 export function updateBeliefs(people, observations, date) {
-  const evidence = availableObservations(observations, date).filter(o => o.status !== 'invalid');
+  const evidence = availableObservations(observations, date).filter(o => o.status !== 'invalid' && Number.isFinite(o.value) && o.valueType !== 'category');
   const latest = new Map();
   for (const observation of evidence) {
     const key = `${observation.productionUnitId}:${observation.variable}:${observation.sourceId}`;
