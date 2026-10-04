@@ -62,4 +62,32 @@ npm run sim -- --irrigate
 npm run sim -- --days 120 --seed my-seed
 ```
 
-See [architecture and run instructions](./docs/04_Farm_Sim_Phase01_Architecture.md), [Phase 0 baseline](./docs/validation/phase01-baseline.md), and [validation results](./docs/validation/phase01-results.md). Farm Map/gameplay UI is reserved for a later phase.
+See [architecture and run instructions](./docs/04_Farm_Sim_Phase01_Architecture.md), [Phase 0 baseline](./docs/validation/phase01-baseline.md), and [validation results](./docs/validation/phase01-results.md). Phase 2 subsequently adds a playable Farm Map and management UI at `/game`; the Phase 0/1 report remains the foundation record.
+
+## Farm Manager playable game — Phase 2
+
+The new `/game` route is a Chinese-first playable Yunnan blueberry management scenario with a dynamic SVG farm map, Production Unit details, delayed reports, approval-based delegation, Manager Attention, resource-aware scheduling, emergency water purchases, and a multi-dimensional end review. The original Demo routes remain available.
+
+On Windows, download or check out `feature/farm-sim-phase2`, open a terminal in that new checkout, then run:
+
+```bat
+npm ci
+npm run dev
+```
+
+Open the **Local** address printed by Vite and append `/game` (normally `http://localhost:5173/game`). Keep this terminal running. An older running Demo server may occupy port 5173; use the address printed by the new terminal.
+
+Progress is automatically saved in this browser. Click **推进一天** to advance one day. Inspect a Production Unit, wait for the report to arrive, and use **决策中心** to choose an action or ask a subordinate for a proposal. Proposals require your approval. The normal scenario ends after 28 daily transitions. **经营管理** contains finance, water purchase, restart settings and the final review.
+
+```sh
+npm test
+npm run build
+npm run lint:baseline
+# With the dev/preview server running and system Chromium available:
+npm run test:game
+npm run test:routes
+```
+
+The browser scripts accept `SMOKE_BASE_URL` and `PUPPETEER_EXECUTABLE_PATH`; on Windows point the latter to an installed Chrome/Chromium executable. Parameters remain illustrative training values. Same seed reproducibility requires the same content version and ordered player inputs.
+
+See [Phase 2 implementation scope](docs/05_Farm_Sim_Phase2_Spec.md), [game architecture and playing guide](docs/06_Farm_Sim_Phase2_Playing_Guide.md), and [Phase 2 verification](docs/validation/phase2-results.md). The original project designs are preserved under `docs/design/` as Word documents and readable Markdown.
