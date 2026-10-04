@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:routes": "node scripts/smoke-routes.cjs",
-    "sim": "node scripts/run-farm-sim.mjs"
+    "sim": "node scripts/run-farm-sim.mjs",
+    "lint:baseline": "node scripts/check-lint-baseline.cjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

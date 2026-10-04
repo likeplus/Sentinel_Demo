@@ -51,6 +51,7 @@ describe('operation reservations and finance', () => {
     const irrigation=(id,date)=>op(id,0.25,date,{assignedResourceIds:['water'],resourceQuantities:{water:60}});
     expect(detectResourceConflicts([irrigation('a','2026-03-04'),irrigation('b','2026-03-05')],[water])).toMatchObject([{type:'inventory',requested:120,available:100}]);
     expect(()=>op('a',1.25)).toThrow();
+    expect(()=>op('a',0.5,'2026-03-04',{plannedOutput:{water:-1}})).toThrow();
   });
   it('updates cash/expenses once per transaction and records emergency purchases', () => {
     const expense={id:'expense',date:'2026-03-04',amount:50,sourceId:'op',emergency:true};

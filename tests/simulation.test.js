@@ -74,6 +74,18 @@ describe('player view and replay cannot expose future evidence or hidden truth',
     const checkpoint=sim.exportCheckpoint();day6.resources[0].quantity=-1;
     expect(sim.exportCheckpoint()).toEqual(checkpoint);
   });
+  it('changing hidden crop truth/future samples cannot change the current player view', () => {
+    const first=createYunnanBlueberryFixture({eventRules:[]});
+    const changed=createYunnanBlueberryFixture({eventRules:[]});
+    first.observationProfiles=[];changed.observationProfiles=[];
+    changed.cropInstances.forEach(c=>{c.trueState.waterStress=1;c.trueState.qualityPotential=0;});
+    changed.observations.find(o=>o.id==='pu03-lab-day4').value=0;
+    const a=new SimulationEngine(first,packs),b=new SimulationEngine(changed,packs);
+    expect(a.getPlayerView()).toEqual(b.getPlayerView());
+    expect(advanceTo(a,'2026-03-05')).toEqual(advanceTo(b,'2026-03-05'));
+    expect(a.advanceOneDay().observations).not.toEqual(b.advanceOneDay().observations);
+    expect(a.getPlayerView('manager','2026-03-05')).toEqual(b.getPlayerView('manager','2026-03-05'));
+  });
   it('stales observations without modifying trueState', () => {
     const sim=engine();advanceTo(sim,'2026-03-10');
     const before=sim.exportCheckpoint().state.farmState.cropInstances;
@@ -99,10 +111,17 @@ describe('decision → operation → outcome/finance', () => {
     expect(result.accepted).toBe(true);const next=sim.advanceOneDay();const op=next.operations[0];
     expect(op.executionStatus).toBe('completed');expect(op.actualOutput.water).toBeLessThan(op.plannedOutput.water);
     expect(op.actualStart).toBe('2026-03-05');expect(op.deviations.some(d=>d.type==='productivity')).toBe(true);
+    expect(next.resources.find(r=>r.id==='water').quantity).toBe(view.resources.find(r=>r.id==='water').quantity-20);
     expect(next.finance.cash).toBe(cash-op.cost);expect(next.finance.transactions).toHaveLength(1);
     const resolved=next.decisionCases.find(c=>c.id===decision.id);
     expect(resolved.resultingOperationIds).toContain(op.id);expect(resolved.outcomeIds).toContain(`outcome:${op.id}`);
     sim.advanceOneDay();expect(sim.getPlayerView().finance.transactions).toHaveLength(1);
+  });
+  it('rejects nonserializable decisions before reserving resources', () => {
+    const sim=engine();advanceTo(sim,'2026-03-04');
+    const before=sim.getPlayerView();
+    expect(()=>sim.decide('water-stress-pu03',{type:'decide_now',optionId:'irrigate-pu03',reasonTags:[()=>1]})).toThrow();
+    expect(sim.getPlayerView()).toEqual(before);
   });
   it('generates delayed inspection evidence then allows another decision', () => {
     const sim=engine();advanceTo(sim,'2026-03-04');

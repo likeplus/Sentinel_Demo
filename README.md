@@ -51,3 +51,15 @@ For deeper technical details on agent protocols and data schemas, see the [Inter
 ---
 
 © 2026 Sentinel AgriAI. All Rights Reserved. Confidential | Internal Use Only.
+
+## Farm simulation foundation (Phase 0/1)
+
+The existing demo remains available. A separate deterministic simulation foundation and configurable Yunnan blueberry fixture can be exercised without mounting React:
+
+```bash
+npm test
+npm run sim -- --irrigate
+npm run sim -- --days 120 --seed my-seed
+```
+
+See [architecture and run instructions](./docs/04_Farm_Sim_Phase01_Architecture.md), [Phase 0 baseline](./docs/validation/phase01-baseline.md), and [validation results](./docs/validation/phase01-results.md). Farm Map/gameplay UI is reserved for a later phase.

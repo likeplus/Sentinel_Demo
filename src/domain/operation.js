@@ -32,6 +32,10 @@ export function createOperation(input) {
   if (!DAY_ALLOCATIONS.includes(operation.plannedDurationDays)) throw new RangeError('Use quarter-day allocations');
   nonnegative(operation.travelOverhead, 'travelOverhead');
   nonnegative(operation.cost, 'cost');
+  nonnegative(operation.priority, 'priority');
+  for (const [name, value] of Object.entries(operation.plannedOutput)) {
+    if (typeof value === 'number') nonnegative(value, `planned output ${name}`);
+  }
   if (new Set(operation.assignedResourceIds).size !== operation.assignedResourceIds.length) throw new TypeError('Duplicate assigned resource');
   for (const [id, quantity] of Object.entries(operation.resourceQuantities)) {
     nonnegative(quantity, `resource ${id}`);

@@ -53,7 +53,7 @@ export class SimulationEngine {
     config.decisionTemplates = (config.decisionTemplates || []).map(createDecisionCase);
     this.#validateReferences();
     this.#playerActorId = config.playerActorId || config.people.find(p => p.role === config.scenario.playerRole)?.id;
-    if (!this.#playerActorId) throw new TypeError('Missing player actor for playerRole');
+    if (!this.#playerActorId || !config.people.some(p => p.id === this.#playerActorId)) throw new TypeError('Missing player actor for playerRole');
     this.#random = new RandomEngine(config.scenario.seed);
     config.world.date = config.scenario.startDate;
     this.#state = { scenarioId: config.scenario.id, currentDate: config.scenario.startDate, currentDayIndex: 0,
@@ -260,6 +260,7 @@ export class SimulationEngine {
 
   /** Explicit player decision, never an autonomous truth-aware action. */
   decide(caseId, selection) {
+    selection = clone(selection);
     const s = this.#state;
     const decision = s.openDecisionCases.find(c=>c.id===caseId);
     if (!decision || !['open','delayed','delegated','investigating'].includes(decision.status) || this.ended) throw new TypeError('Decision is unavailable');
