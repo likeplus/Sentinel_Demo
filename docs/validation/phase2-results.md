@@ -69,4 +69,8 @@ SMOKE_BASE_URL=http://127.0.0.1:4173 npm run test:routes
 - 开场观测冲突保留配置日期引导；其他设备/劳动力/缺水/采收前事件按窗口、条件和概率触发。非默认 seed 不保证相同节点发生在相同日期。
 - 完整职业、更多委派级别、外部 AI/GIS、后台账号及后续研究模式仍在后续范围。本 PR 只交付已批准的 Phase 2 网页试玩。
 
-代码和云端验收已完成；交付为面向 `likeplus/Sentinel_Demo` main 的 PR，Phase 2 不自动合并到 main。
+## PR 交付
+
+已推送 `feature/farm-sim-phase2`，并创建 [PR #2](https://github.com/likeplus/Sentinel_Demo/pull/2)，base 为 `main`，状态为 OPEN。GitHub 返回 MERGEABLE / CLEAN，未配置报告到 PR 的状态检查；上表是实际本地及浏览器验收结果。
+
+改动按模拟规则（`4a74485`）、网页与会话（`7538b89`）、浏览器验收与文档（`c646229`）分步提交。工作区干净，已核对本地和远端实现提交一致。本次交付不合并 PR #2。
