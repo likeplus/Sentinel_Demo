@@ -59,11 +59,11 @@ Existing lint problems include duplicate store keys, unused variables, hook orde
 
 New simulation limits: training parameters are illustrative; end conditions are date-only; daily scheduling has no workforce routing or permissions system; replay snapshots are in memory; no gameplay/map UI, real GIS, backend or full accounting. Engine checkpoint payloads contain truth and must never be handed to players/agents.
 
-GitHub API access currently fails before authentication with proxy CONNECT **403 Forbidden** for `api.github.com`. Existing Git read access works. The required domain addition is saved in the environment configuration draft; saving a draft does not apply or publish it. PR creation remains dependent on that runtime network change; no PR URL is claimed here.
+Delivery completed: the implementation branch was pushed successfully, and [PR #1](https://github.com/likeplus/Sentinel_Demo/pull/1) is OPEN with head `feature/farm-sim-mvp` and base `main`, verified through GitHub metadata. Initial API connectivity checks received proxy CONNECT 403; a required `api.github.com` domain addition was saved in the environment draft and subsequent PR creation/API metadata reads succeeded. There is no outstanding PR access blocker. Draft persistence is confirmed; environment publication was not performed or claimed by this coding task.
 
 ## 7. Intentional deviations
 
-Phase 0 placeholders were replaced with actual executable regression and acceptance tests as Phase 1 landed. Six incremental implementation commits (baseline, domain, random/knowledge, crop content, engine/trace, validation/docs) group the suggested eight-ticket sequence without altering its scope. Dates use a documented exclusive end boundary. Fixed scenario-authored reports/cases serve as fixtures; probabilistic event windows and continuous samples remain separately configurable. Legacy adapters are available but intentionally not wired into old UI/store until an explicit later migration ticket.
+Phase 0 placeholders were replaced with actual executable regression and acceptance tests as Phase 1 landed. Six incremental implementation commits (baseline, domain, random/knowledge, crop content, engine/trace, validation/docs), plus a closing delivery-report commit, group the suggested eight-ticket sequence without altering its scope. Dates use a documented exclusive end boundary. Fixed scenario-authored reports/cases serve as fixtures; probabilistic event windows and continuous samples remain separately configurable. Legacy adapters are available but intentionally not wired into old UI/store until an explicit later migration ticket.
 
 ## 8. Recommended next ticket
 
