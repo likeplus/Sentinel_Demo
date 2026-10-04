@@ -9,6 +9,7 @@ import IterativeReasoningOverlay from './IterativeReasoningOverlay';
 import { pick, formatLocaleTime } from '../i18n/locale.js';
 
 const navItems = [
+    { path: '/game', label: 'Farm Game', labelZh: '农场试玩', iconName: 'dashboard' },
     { path: '/', label: 'Dashboard', labelZh: '指挥中心', iconName: 'dashboard' },
     { path: '/sensors', label: 'Sensor Telemetry', labelZh: '传感数据', iconName: 'sensors' },
     { path: '/risk', label: 'Risk Assessment', labelZh: '风险评估', iconName: 'risk', alertKey: 'risk' },
