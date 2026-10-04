@@ -27,6 +27,10 @@ export function createScenario(input) {
   if (!Number.isInteger(scenario.stepDays) || scenario.stepDays < 1) throw new RangeError('stepDays must be a positive integer');
   if (!['string', 'number'].includes(typeof scenario.seed)) throw new TypeError('seed must be a string or number');
   nonnegative(scenario.startingCash, 'startingCash');
+  for (const condition of scenario.endConditions) {
+    if (condition.type !== 'date') throw new TypeError('Phase 1 supports only date end conditions');
+    if (condition.date !== scenario.endDate) throw new RangeError('Date end condition must match endDate');
+  }
   return scenario;
 }
 export const scenarioDuration = scenario => daysBetween(scenario.startDate, scenario.endDate);

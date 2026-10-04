@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:routes": "node scripts/smoke-routes.cjs"
+    "test:routes": "node scripts/smoke-routes.cjs",
+    "sim": "node scripts/run-farm-sim.mjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
