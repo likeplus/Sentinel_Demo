@@ -21,12 +21,14 @@ describe('Yunnan fixture and configurable simulation', () => {
     expect(JSON.parse(JSON.stringify(fixture))).toEqual(fixture);
     fixture.resources[0].quantity=0;expect(createYunnanBlueberryFixture().resources[0].quantity).toBe(3600);
   });
+  // Full-horizon replay snapshots can exceed Vitest's default 5s on slower machines.
+  // Keep this budget local to duration acceptance tests; retain every assertion.
   it.each([28,120])('runs %i days through the same interface and stops at configured date', days => {
     const sim=engine({endDate:addDays('2026-03-01',days)});const view=complete(sim);
     expect(view.currentDayIndex).toBe(days);expect(view.currentDate).toBe(addDays('2026-03-01',days));
     expect(view.history).toHaveLength(days);expect(view.history[0].phases).toEqual(DAILY_PHASES);
     expect(sim.advanceOneDay()).toEqual(view);
-  });
+  }, 30_000);
   it('advances configured multi-day steps and clamps the final partial step', () => {
     const sim=engine({stepDays:5});sim.advanceStep();expect(sim.currentDayIndex).toBe(5);
     expect(complete(sim).currentDayIndex).toBe(28);

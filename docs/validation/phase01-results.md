@@ -68,3 +68,7 @@ Phase 0 placeholders were replaced with actual executable regression and accepta
 ## 8. Recommended next ticket
 
 Define Phase 2 Today/Decisions UI requirements around `getPlayerView()` and explicit decision/scheduling APIs, including what information a player may see. Separately fix the baseline lint/hook issues. No Phase 2 work is included in this branch.
+
+## Windows validation follow-up
+
+A Windows run reported 47 passes and one timeout in the 120-day duration acceptance test, at Vitest's default 5-second limit. No failing assertion was reported. Full daily public replay snapshots make this case more expensive on slower machines. The parameterized duration checks now have a local 30-second budget; their date/index/history/end-state assertions remain unchanged, and the global timeout remains unchanged. Cloud validation was rerun after the fix; Windows validation still requires a local rerun. ZIP users can immediately retry with `npm test -- --testTimeout=30000` without replacing their checkout.
