@@ -1,0 +1,262 @@
+[
+  {
+    "file": "src/components/AIAgentPanel.jsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 167,
+        "column": 11,
+        "message": "The 'latestAssignments' conditional could make the dependencies of useMemo Hook (at line 195) change on every render. To fix this, wrap the initialization of 'latestAssignments' in its own useMemo() Hook."
+      },
+      {
+        "ruleId": "react-hooks/purity",
+        "severity": 2,
+        "line": 365,
+        "column": 101,
+        "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n  363 |                 <div className=\"grade-uplift-box\">\n  364 |                     <div style={{ fontSize: '0.6rem', color: '#86efac', textTransform: 'uppercase', fontWeight: 700 }}>{t('Grade A Quality Protected', 'A级品质保护率')}</div>\n> 365 |                     <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f0fdf4' }}>{98.4 + (Math.random() * 1.5).toFixed(1)}%</div>\n      |                                                                                                     ^^^^^^^^^^^^^ Cannot call impure function\n  366 |                 </div>\n  367 |             </div>\n  368 |         </div>"
+      }
+    ]
+  },
+  {
+    "file": "src/components/AIThinkingPanel.jsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "line": 154,
+        "column": 13,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  152 |     useEffect(() => {\n  153 |         if (!isThinking) {\n> 154 |             setVisibleCount(chain.length);\n      |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  155 |             return;\n  156 |         }\n  157 |"
+      },
+      {
+        "ruleId": "react-hooks/rules-of-hooks",
+        "severity": 2,
+        "line": 188,
+        "column": 30,
+        "message": "React Hook \"useMemo\" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?"
+      }
+    ]
+  },
+  {
+    "file": "src/components/AutomationController.jsx",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 14,
+        "column": 9,
+        "message": "'startRiskThinking' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 14,
+        "column": 28,
+        "message": "'stopThinking' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      },
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "line": 21,
+        "column": 13,
+        "message": "Error: Cannot access variable before it is declared\n\n`runVideoSequence` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  19 |         if (query.get('automate') === 'true') {\n  20 |             const startRound = parseInt(query.get('round')) || 1;\n> 21 |             runVideoSequence(startRound);\n     |             ^^^^^^^^^^^^^^^^ `runVideoSequence` accessed before it is declared\n  22 |         }\n  23 |     }, [location.search]);\n  24 |\n\n   23 |     }, [location.search]);\n   24 |\n>  25 |     const runVideoSequence = async (startRound = 1) => {\n      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  26 |         console.log(`Starting Sentinel Automation Sequence (Round ${startRound})...`);\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  27 |\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 118 |         console.log(\"Automation Sequence Complete.\");\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 119 |     };\n      | ^^^^^^^ `runVideoSequence` is declared here\n  120 |\n  121 |     return null; // Side effect component\n  122 | }"
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 23,
+        "column": 8,
+        "message": "React Hook useEffect has a missing dependency: 'runVideoSequence'. Either include it or remove the dependency array."
+      }
+    ]
+  },
+  {
+    "file": "src/components/SystemActivityRail.jsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "line": 127,
+        "column": 9,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  125 |     const [nowTick, setNowTick] = useState(0);\n  126 |     useEffect(() => {\n> 127 |         setNowTick(Date.now());\n      |         ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  128 |         const timer = setInterval(() => setNowTick(Date.now()), 1000);\n  129 |         return () => clearInterval(timer);\n  130 |     }, []);"
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 133,
+        "column": 11,
+        "message": "The 'latestAssignments' conditional could make the dependencies of useMemo Hook (at line 189) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'latestAssignments' in its own useMemo() Hook."
+      }
+    ]
+  },
+  {
+    "file": "src/engine/decisionEngine.js",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 182,
+        "column": 37,
+        "message": "'stage' is defined but never used."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 203,
+        "column": 29,
+        "message": "'pests' is defined but never used."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 203,
+        "column": 36,
+        "message": "'stage' is defined but never used."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 223,
+        "column": 36,
+        "message": "'pests' is defined but never used."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 223,
+        "column": 43,
+        "message": "'stage' is defined but never used."
+      }
+    ]
+  },
+  {
+    "file": "src/engine/store.js",
+    "messages": [
+      {
+        "ruleId": "no-dupe-keys",
+        "severity": 2,
+        "line": 285,
+        "column": 5,
+        "message": "Duplicate key 'pipelineStage'."
+      }
+    ]
+  },
+  {
+    "file": "src/pages/Dashboard.jsx",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 27,
+        "column": 9,
+        "message": "'isIterating' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 27,
+        "column": 22,
+        "message": "'iterationRound' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 27,
+        "column": 38,
+        "message": "'iterationStage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 85,
+        "column": 11,
+        "message": "The 'fieldData' logical expression could make the dependencies of useMemo Hook (at line 98) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'fieldData' in its own useMemo() Hook."
+      },
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 89,
+        "column": 30,
+        "message": "'i' is defined but never used."
+      },
+      {
+        "ruleId": "react-hooks/purity",
+        "severity": 2,
+        "line": 90,
+        "column": 29,
+        "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n  88 |         const slice = fieldData.slice(Math.max(0, currentDay - 30), currentDay);\n  89 |         return slice.map((d, i) => {\n> 90 |             const jitter = (Math.random() * 2 - 1);\n     |                             ^^^^^^^^^^^^^ Cannot call impure function\n  91 |             return {\n  92 |                 day: d.day,\n  93 |                 grayMold: Math.max(0, (d.threats?.grayMold?.score || 5) + jitter),"
+      },
+      {
+        "ruleId": "no-useless-escape",
+        "severity": 2,
+        "line": 228,
+        "column": 75,
+        "message": "Unnecessary escape character: \\\"."
+      },
+      {
+        "ruleId": "no-useless-escape",
+        "severity": 2,
+        "line": 228,
+        "column": 86,
+        "message": "Unnecessary escape character: \\\"."
+      }
+    ]
+  },
+  {
+    "file": "src/pages/Execution.jsx",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "line": 119,
+        "column": 11,
+        "message": "'rx' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u."
+      }
+    ]
+  },
+  {
+    "file": "src/pages/RiskAssessment.jsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 45,
+        "column": 11,
+        "message": "The 't' function makes the dependencies of useMemo Hook (at line 130) change on every render. To fix this, wrap the definition of 't' in its own useCallback() Hook."
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 145,
+        "column": 11,
+        "message": "The 'fieldData' logical expression could make the dependencies of useMemo Hook (at line 157) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'fieldData' in its own useMemo() Hook."
+      },
+      {
+        "ruleId": "react-hooks/purity",
+        "severity": 2,
+        "line": 149,
+        "column": 29,
+        "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n  147 |         const slice = fieldData.slice(Math.max(0, currentDay - 7), currentDay);\n  148 |         return slice.map((d, i) => {\n> 149 |             const jitter = (Math.random() * 2 - 1);\n      |                             ^^^^^^^^^^^^^ Cannot call impure function\n  150 |             return {\n  151 |                 day: `D${d?.day || i + 1}`,\n  152 |                 botrytis: clamp((d?.threats?.grayMold?.score ?? 10) + jitter),"
+      }
+    ]
+  },
+  {
+    "file": "src/pages/SensorTelemetry.jsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 90,
+        "column": 11,
+        "message": "The 'fleet' logical expression could make the dependencies of useMemo Hook (at line 112) change on every render. To fix this, wrap the initialization of 'fleet' in its own useMemo() Hook."
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "line": 92,
+        "column": 11,
+        "message": "The 'unitSeries' logical expression could make the dependencies of useMemo Hook (at line 120) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'unitSeries' in its own useMemo() Hook."
+      }
+    ]
+  }
+]
