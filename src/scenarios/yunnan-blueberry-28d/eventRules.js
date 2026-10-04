@@ -1,0 +1,15 @@
+export const eventRules = [
+  { id:'observation-conflict',name:'Sensor and worker disagree',eligibleWindow:{startDay:4,endDay:7},conditions:[],baseProbability:0.6,
+    modifiers:[],maxOccurrences:1,effects:[{type:'decision',templateId:'water-stress-pu03'}] },
+  { id:'sensor-valve-anomaly',name:'Valve flow anomaly',eligibleWindow:{startDay:6,endDay:12},conditions:[],baseProbability:0.25,
+    modifiers:[],maxOccurrences:1,effects:[{type:'resource_availability',resourceId:'irrigation-rig',factor:0.5}] },
+  { id:'labor-disruption',name:'Crew attendance disruption',eligibleWindow:{startDay:10,endDay:17},conditions:[],baseProbability:0.2,
+    modifiers:[],maxOccurrences:2,effects:[{type:'resource_availability',resourceId:'crew-a',factor:0.5}] },
+  { id:'water-pressure',name:'Escalating water pressure',eligibleWindow:{startDay:12,endDay:24},
+    conditions:[{path:'world.weather.rainfall',operator:'lt',value:1}],baseProbability:0.35,
+    modifiers:[{conditions:[{path:'crops.CROP-03.trueState.waterStress',operator:'gt',value:0.7}],multiplier:1.5}],maxOccurrences:3,
+    effects:[{type:'resource_delta',resourceId:'water',amount:-120}] },
+  { id:'pre-harvest-tradeoff',name:'Pre-harvest water-quality trade-off',eligibleWindow:{startDay:21,endDay:28},
+    conditions:[{path:'crops.CROP-01.stage',operator:'eq',value:'harvest'}],baseProbability:0.4,modifiers:[],maxOccurrences:1,
+    effects:[{type:'decision',templateId:'pre-harvest'}] },
+];
