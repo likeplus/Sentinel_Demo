@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "locales": [
+    "zh",
+    "en"
+  ],
+  "views": [
+    "map",
+    "today",
+    "operations",
+    "units",
+    "decisions",
+    "management",
+    "guide",
+    "knowledge",
+    "results"
+  ],
+  "checks": [
+    "no mixed system language in all eight views",
+    "inspection and AI results localized",
+    "guide reading leaves checkpoint unchanged",
+    "locale persists and shares original Demo preference",
+    "mobile overview and guides fit width",
+    "no browser runtime exceptions"
+  ],
+  "screenshots": "screenshots/latest/"
+}

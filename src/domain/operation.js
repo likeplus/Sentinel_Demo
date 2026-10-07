@@ -27,9 +27,10 @@ export function createOperation(input) {
   const operation = model({ sourceType: 'decision', sourceId: null, productionUnitIds: [], plannedDurationDays: 0.25,
     assignedResourceIds: [], plannedOutput: {}, priority: 0, actualStart: null, actualDurationDays: null,
     actualResourceIds: [], actualOutput: null, travelOverhead: 0, executionStatus: 'scheduled', deviations: [],
-    cost: 0, resourceQuantities: {} }, input, ['id', 'type', 'plannedStart']);
+    cost: 0, resourceQuantities: {}, maintenanceEffects: [] }, input, ['id', 'type', 'plannedStart']);
   dateMs(operation.plannedStart);
-  if (!DAY_ALLOCATIONS.includes(operation.plannedDurationDays)) throw new RangeError('Use quarter-day allocations');
+  if (!DAY_ALLOCATIONS.includes(operation.plannedDurationDays)
+    && !(operation.feedbackTask && Number.isFinite(operation.plannedDurationDays) && operation.plannedDurationDays >= 0 && operation.plannedDurationDays <= 1)) throw new RangeError('Use quarter-day allocations');
   nonnegative(operation.travelOverhead, 'travelOverhead');
   nonnegative(operation.cost, 'cost');
   nonnegative(operation.priority, 'priority');
@@ -40,6 +41,10 @@ export function createOperation(input) {
   for (const [id, quantity] of Object.entries(operation.resourceQuantities)) {
     nonnegative(quantity, `resource ${id}`);
     if (!operation.assignedResourceIds.includes(id)) throw new TypeError('Inventory resource must be assigned');
+  }
+  for (const effect of operation.maintenanceEffects) {
+    if (typeof effect.resourceId !== 'string' || !Number.isFinite(effect.factor) || effect.factor < 0 || effect.factor > 1
+      || !Number.isInteger(effect.durationDays) || effect.durationDays < 1) throw new TypeError('Invalid maintenance effect');
   }
   return operation;
 }

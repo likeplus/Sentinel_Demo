@@ -1,0 +1,41 @@
+const text = (zh, en) => ({ zh, en });
+
+/** Add a module/card here to extend onboarding without changing the renderer. */
+export const GAMEPLAY_GUIDE_MODULES = [
+  {
+    id: 'daily-management', title: text('每天怎么经营', 'Daily farm management'),
+    description: text('你扮演农场经理：在有限的信息、人力和注意力下，决定先了解哪里、先处理什么，以及把工作安排在哪一天。', 'You are the farm manager. With limited information, labor and attention, decide where to investigate, what to prioritize, and when work should happen.'),
+    cards: [
+      { id: 'first-day', title: text('第一次试玩：按这六步开始', 'Your first day: six steps'), ordered: true, items: [
+        text('打开农场总览，比较各单元的水分风险、作物状态、设备状态、可信度和新鲜度。', 'Open Farm overview and compare water risk, crop condition, equipment, confidence and freshness.'),
+        text('选择最值得关注的单元。信息不足时先巡查，风险明确时考虑直接处理。', 'Select a unit that needs attention. Inspect when information is uncertain; act when risk is clear.'),
+        text('在早会进入作业排程，选择今天或未来日期，核对劳动力、水量、注意力和已有预约。', 'During the morning meeting, schedule today or a future date. Check labor, water, attention and reservations.'),
+        text('点击“开始执行”。执行后可查看新发现与结果，但不能重新打开当天排程。', 'Start execution. Review findings and results; today’s scheduling window stays closed.'),
+        text('进入日终复盘，比较计划和实际：完成了什么、哪里受阻、补水预计有何影响。', 'Review the end of day: what completed, what was blocked, and the expected effect of watering.'),
+        text('进入次日早会，结合天气、传感器更新和昨日结果，重新安排下一天。', 'Enter the next morning meeting and replan using weather, sensor updates and yesterday’s results.'),
+      ], target: 'map', link: text('查看农场总览', 'Open farm overview') },
+      { id: 'meeting', title: text('早会是唯一正式排程窗口', 'The morning meeting is the scheduling window'), body: text('每天按照“早会 → 执行 → 日终复盘 → 次日早会”推进。执行和复盘阶段可以观察结果；新发现的问题留到次日早会处理。', 'Each day moves through meeting → execution → end-of-day review → next morning. Review results during execution and review; new issues wait until the next meeting.'), items: [text('早会回顾昨日观测、作业结果、设备和未来任务，再安排今天或未来日期。', 'Review observations, results, equipment and future plans, then schedule today or later.'), text('尚未执行的任务可保留、改期或取消；取消释放预约，不会生成观测。', 'Keep, reschedule or cancel unexecuted tasks. Cancellation releases reservations and generates no observation.')], target: 'today', link: text('查看今日工作', 'Open Today') },
+      { id: 'resources', title: text('劳动力与经理注意力不是一回事', 'Labor and attention are different resources'), items: [text('劳动力是班组的当天作业容量，不会结转。默认完整班组日换算为 8 点劳动力，未来也可能遇到人员缺勤。', 'Labor is the crew’s daily capacity and does not carry over. A full crew-day equals 8 Labor in this demo; absences may reduce availability.'), text('每天早会固定消耗 1 点经理注意力。安排多个普通任务、调整未来排程和接受建议，不再逐次扣注意力。', 'The meeting costs 1 Attention. Routine tasks, schedule adjustments and accepting proposals do not cost attention per click.'), text('进入复杂经理判断消耗 1；经理亲自巡查消耗 2、劳动力为 0、巡查可信度为 100%。附加现场操作仍需正常劳动力。', 'Complex manager review costs 1 Attention. Personal inspection costs 2 Attention, no Labor and yields 100% observation confidence. Attached fieldwork still uses normal labor.'), text('注意力用完仍能继续：安排普通任务，或把复杂判断交给团队、智能助手。', 'Zero attention does not stop play. Schedule routine work or delegate complex decisions to the team or AI assistant.')], target: 'operations', link: text('查看容量与排程', 'Open capacity and scheduling') },
+    ],
+  },
+  {
+    id: 'evidence-actions', title: text('观察、判断与行动', 'Evidence, judgment and action'),
+    description: text('风险告诉你“可能有多严重”；可信度和新鲜度告诉你“现在知道多少”。三者必须一起看。', 'Risk indicates possible severity. Confidence and freshness indicate how much you know. Read all three together.'),
+    cards: [
+      { id: 'information', title: text('低风险不一定代表安全', 'Low estimated risk does not guarantee safety'), items: [text('高风险、高可信度、信息新鲜：问题比较明确，应优先评估处理。', 'High risk, high confidence and fresh evidence indicate a clear problem worth prioritizing.'), text('低风险、低可信度或信息陈旧：可能只是不了解现状，应考虑重新观察。', 'Low risk with low confidence or old data may mean you do not know the current condition. Consider observing again.'), text('没有有效信息时保持未知，不把未知当作正常。新鲜度按最新有效信息计算，而不只看人工巡查。', 'No valid information means unknown, not normal. Freshness uses the latest valid information, not only manual inspections.'), text('传感器能更新水分信息，但不能代替叶片、果实和设备的现场检查。', 'Sensors renew water information but cannot replace field inspection of leaves, fruit and equipment.') ] },
+      { id: 'actions', title: text('把巡查和现场工作组合起来', 'Combine inspection with fieldwork'), body: text('田间巡查同时检查作物与设备。可附加人工补水、喷施、维修或传感器迁移，表单会实时汇总资源需求。', 'An inspection checks crops and equipment together. Attach manual watering, spraying, repair or sensor relocation; the form totals resource needs.'), items: [text('系统灌溉依赖正式设备；人工补水消耗更多人力，但可以绕过故障设备。', 'System irrigation depends on irrigation equipment. Manual watering uses more labor but can bypass a fault.'), text('同一单元、同一日期、同一作业只允许安排一次，组合任务里的作业也算。', 'Each action is unique per unit and date, including actions inside combined tasks.'), text('移动传感器必须通过正式迁移任务重新部署；固定传感器不能随意移动。', 'Move mobile sensors through a relocation task. Fixed sensors cannot be relocated.'), text('可靠度描述长期表现，设备状态描述当前是否能正常工作；二者独立。', 'Reliability describes long-term performance; current status indicates whether equipment works now. They are independent.')], target: 'operations', link: text('安排一项任务', 'Schedule a task') },
+      { id: 'delegation', title: text('复杂问题可以委派，但建议不是自动执行', 'Delegate complex decisions, then accept or reject'), items: [text('团队和智能助手根据当时可见的信息、天气、阶段、资源与排程生成建议，并自动记录理由。', 'The team and AI use visible evidence, weather, stage, resources and schedule, recording a rationale automatically.'), text('智能助手只提供接受或拒绝；接受不消耗经理注意力，仍需通过资源检查。', 'AI proposals offer Accept or Reject. Accepting costs no attention but still requires available resources.'), text('原场景的下属汇报可能次日送达，未经批准不会排程。', 'Some authored team proposals arrive the next day and do not schedule work without approval.'), text('决策历史保留观测、决策者、当时理由、关联作业与结果，便于季末复盘。', 'History links evidence, decision maker, rationale, operations and results for end-of-season review.')], target: 'decisions', link: text('打开决策中心', 'Open decision center') },
+    ],
+  },
+  {
+    id: 'situations', title: text('你会遇到的经营情况', 'Situations you may encounter'),
+    description: text('玩法没有唯一正确答案。重点是解释你的优先级，观察措施产生的结果，再据此调整。', 'There is no single correct solution. Explain your priorities, observe the effect of actions, and adjust.'),
+    cards: [
+      { id: 'fault-water', title: text('缺水遇上设备故障', 'Water stress meets equipment failure'), body: text('先确认缺水与故障的证据，再比较先维修、人工补水或维修加补水。系统灌溉可能受阻，人工补水则会挤占其他任务的人力。', 'Check evidence of stress and failure. Compare repair first, manual watering, or combined repair and watering. System irrigation may be blocked; manual watering competes for labor.') },
+      { id: 'stale-evidence', title: text('报告不一致或信息过期', 'Reports disagree or information becomes stale'), body: text('传感器、现场人员和延迟实验室报告可能指向不同结论。比较观测时间、来源和可信度，决定是否先巡查；不要把刚送达的旧采样当作今天的状态。', 'Sensors, field teams and delayed lab reports may disagree. Compare observation time, source and confidence. A newly delivered old sample is not necessarily current evidence.') },
+      { id: 'capacity', title: text('多个单元争用同一批资源', 'Units compete for the same resources'), body: text('同时看今天和未来容量，把紧急风险、敏感生长阶段与已有任务一起排序。改期或取消较低优先级任务，释放劳动力、水量和预留资源。', 'Review today and future capacity. Prioritize urgent risks and sensitive stages alongside existing plans. Reschedule or cancel lower priorities to release reservations.') },
+      { id: 'feedback', title: text('补水后的估计为什么还会变化', 'Why the estimate changes after watering'), body: text('当天执行后先显示预计影响。次日会结合用水量、天气、蒸散、生长阶段、设备表现和有效观测正式更新；预计改善不等于未来持续安全。', 'Execution shows an expected impact first. The next morning combines water applied, weather, evapotranspiration, stage, equipment and valid observations. Improvement does not guarantee lasting safety.') },
+      { id: 'finance', title: text('现金、费用和预计收入要分开', 'Separate cash, costs and forecast revenue'), body: text('作业实际执行后记账，应急采购要确认付款。预计收入是估算，尚未成为现金；季末从财务、水资源、作物信息、作业与决策五个维度复盘。', 'Operating costs are booked on execution; purchases require payment confirmation. Forecast revenue is not cash. Review finance, water, crop information, operations and decisions at season end.'), target: 'management', link: text('查看经营管理', 'Open Management') },
+    ],
+  },
+];

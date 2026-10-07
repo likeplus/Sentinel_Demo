@@ -1,0 +1,60 @@
+.farm-map { --map-green: #315d43; width: 100%; background: #fff; border: 1px solid #dce3d7; border-radius: 15px; overflow: hidden; }
+.farm-map__summary { min-height: 43px; display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 10px 17px; color: #5e6c5e; font-size: 11px; border-bottom: 1px solid #e4e9df; letter-spacing: .025em; }
+.farm-map__summary > span:first-child { display: flex; align-items: center; gap: 7px; color: #344d38; font-weight: 650; }
+.farm-map__live-dot { width: 6px; height: 6px; background: #608961; border-radius: 50%; box-shadow: 0 0 0 3px #eff5ec; }
+.farm-map__canvas { position: relative; overflow: hidden; background: #edf0e6; }
+.farm-map__svg { display: block; width: 100%; height: clamp(350px, 43vw, 550px); }
+.farm-map__landscape { fill: none; stroke: #d7e0ce; stroke-width: 12; stroke-linecap: round; opacity: .55; }
+.farm-map__boundary { fill: none; stroke: #adbba4; stroke-width: .9; stroke-dasharray: 3 3; opacity: .55; }
+.farm-map__track { fill: none; stroke: #e3d8c4; stroke-width: 4; stroke-linecap: round; }
+.farm-map__cluster-label { fill: #6d7963; text-anchor: middle; font-size: 6.7px; font-weight: 550; letter-spacing: .1em; }
+.farm-map__unit { --field-fill: #c5d5ae; --field-stroke: #899f71; --indicator: #739355; cursor: pointer; outline: none; transition: opacity .18s ease; }
+.farm-map__unit--medium { --field-fill: #ead5a5; --field-stroke: #bd9c5a; --indicator: #b58738; }
+.farm-map__unit--high { --field-fill: #ddbdb1; --field-stroke: #b78470; --indicator: #a96048; }
+.farm-map__unit--tasks { --field-fill: #c8d7d3; --field-stroke: #72988b; --indicator: #3f7a6d; }
+.farm-map__field { fill: var(--field-fill); stroke: var(--field-stroke); stroke-width: 1.2; stroke-linejoin: round; transition: fill .18s, stroke .18s; }
+.farm-map__crop-row { stroke: var(--field-stroke); stroke-width: 1.7; opacity: .22; }
+.farm-map__unit--unknown, .farm-map__unit--stale { --field-fill: #dde2d8; --field-stroke: #a1ad99; --indicator: #9aab95; }
+.farm-map__fog { opacity: .73; }
+.farm-map__unit--stale .farm-map__fog { opacity: .48; }
+.farm-map__unit--stale .farm-map__indicator { fill: #aaa084; }
+.farm-map__label-bg { fill: #fffdf5; opacity: .86; }
+.farm-map__unit text { text-anchor: middle; pointer-events: none; font-family: inherit; }
+.farm-map__unit-id { fill: #283c2b; font-weight: 750; letter-spacing: .065em; }
+.farm-map__variety { fill: #566351; font-weight: 500; }
+.farm-map__stage { fill: #76806c; }
+.farm-map__freshness { fill: #788470; font-weight: 550; }
+.farm-map__indicator { fill: var(--indicator); stroke: #fffef7; stroke-width: .9; }
+.farm-map__task-badge { fill: #356a58; stroke: #fff; stroke-width: .75; }
+.farm-map__task-count { fill: #fff; font-weight: 700; }
+.farm-map__selection { fill: transparent; stroke: #2c6748; stroke-width: 2.6; opacity: 0; pointer-events: none; }
+.farm-map__unit:hover .farm-map__selection { opacity: .5; }
+.farm-map__unit:focus-visible .farm-map__selection, .farm-map__unit--selected .farm-map__selection { opacity: 1; }
+.farm-map__unit--selected .farm-map__field { filter: drop-shadow(0 2px 2px #2b503325); }
+.farm-map__units--aggregate { opacity: .42; pointer-events: none; }
+.farm-map__cluster-button { cursor: pointer; outline: none; }
+.farm-map__cluster-button rect { fill: #fffdf8; stroke: #a8b59d; stroke-width: 1; filter: drop-shadow(0 2px 2px #3e563722); }
+.farm-map__cluster-button:hover rect, .farm-map__cluster-button:focus-visible rect { stroke: #3c704e; stroke-width: 2; }
+.farm-map__cluster-button text { fill: #314a36; text-anchor: middle; font-family: inherit; font-size: 10px; font-weight: 700; pointer-events: none; }
+.farm-map__cluster-button .farm-map__cluster-detail { font-size: 7px; font-weight: 400; fill: #77826b; }
+.farm-map__compass { position: absolute; top: 18px; right: 18px; display: flex; flex-direction: column; align-items: center; color: #788a6c; font-size: 9px; font-weight: 700; gap: 2px; }
+.farm-map__compass span { font-size: 25px; line-height: 22px; font-weight: 400; }
+.farm-map__zoom { position: absolute; bottom: 18px; right: 18px; display: flex; flex-direction: column; border: 1px solid #d5ddce; border-radius: 8px; background: #fffef9; box-shadow: 0 2px 7px #32472c0d; overflow: hidden; }
+.farm-map__zoom button { display: grid; place-items: center; width: 34px; min-height: 32px; padding: 0; background: #fffef9; border: 0; border-bottom: 1px solid #e2e7dd; color: #53684a; font-size: 20px; font-weight: 400; cursor: pointer; }
+.farm-map__zoom button:last-child { border-bottom: 0; }
+.farm-map__zoom button:hover:not(:disabled) { background: #eaf0e5; }
+.farm-map__zoom button:focus-visible { outline: 2px solid #477c59; outline-offset: -3px; }
+.farm-map__zoom button:disabled { opacity: .35; cursor: default; }
+.farm-map__zoom .farm-map__fit { font-family: inherit; font-size: 10px; }
+.farm-map__map-note { position: absolute; bottom: 15px; left: 16px; padding: 5px 8px; background: #edf0e6da; color: #7c8972; font-size: 10px; letter-spacing: .015em; border-radius: 4px; pointer-events: none; }
+.farm-map__legend { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; padding: 13px 17px; color: #6c7967; font-size: 10px; border-top: 1px solid #dde4d6; }
+.farm-map__legend > span { display: inline-flex; align-items: center; gap: 5px; }
+.farm-map__swatch { width: 9px; height: 9px; display: inline-block; border: 1px solid #9eb48a; background: #c5d5ae; border-radius: 2px; }
+.farm-map__swatch--medium { background: #ead5a5; border-color: #bca068; }
+.farm-map__swatch--high { background: #ddbdb1; border-color: #b78470; }
+.farm-map__swatch--unknown { background: repeating-linear-gradient(135deg, #dfe4d9, #dfe4d9 2px, #c6cfbf 2px, #c6cfbf 3px); border-color: #9daa94; }
+.farm-map__swatch--stale { background: repeating-linear-gradient(135deg, #e4e5d6, #e4e5d6 3px, #c6c8b2 3px, #c6c8b2 4px); border-color: #a7a587; }
+.farm-map__swatch--tasks { background: #c8d7d3; border-color: #72988b; }
+.farm-map__legend .farm-map__legend-note { margin-left: auto; color: #8d9686; }
+.farm-map__empty { position: absolute; inset: 0; display: grid; place-items: center; color: #65765c; font-size: 13px; pointer-events: none; }
+@media (max-width: 640px) { .farm-map__summary { font-size: 10px; padding: 10px 12px; } .farm-map__svg { height: 360px; } .farm-map__legend { gap: 10px; padding: 11px 12px; } .farm-map__legend .farm-map__legend-note { margin-left: 0; width: 100%; } }
