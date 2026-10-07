@@ -6,6 +6,8 @@ import { RandomEngine } from './RandomEngine.js';
 import { advanceWorld } from './WorldEngine.js';
 import { availableObservations, sampleObservations, updateBeliefs } from './ObservationEngine.js';
 import { rollEvents, validateEventRules } from './EventEngine.js';
+import { initializeManagement, farmManagementView, farmCapacity, scheduleFarmTask, cancelFarmTask,
+  executeFarmDay, advanceFarmMorning, openFarmDecision, resolveFarmDecision } from './FarmManagement.js';
 
 export const DAILY_PHASES = ['world', 'production', 'resources', 'events', 'observations', 'beliefs',
   'decisions', 'operations', 'outcomes', 'finance', 'audit'];
@@ -65,6 +67,11 @@ export class SimulationEngine {
       eventCounts: {}, eventRolls: [], eventHistory: [], outcomes: [], history: [], operationSequence: 0,
       attention: this.#newAttention(config.scenario.startDate), acceptedRequests: {}, purchaseSequence: 0 };
     this.#state.beliefs = updateBeliefs(config.people, config.observations, config.scenario.startDate);
+    if (config.management) {
+      initializeManagement(this.#state, config.management, this.#random);
+      this.#state.management.endDate = config.scenario.endDate;
+      this.#state.management.caseSessions = [];
+    }
     this.#updateFinance([]);
     this.#saveView();
   }
@@ -135,7 +142,12 @@ export class SimulationEngine {
 
   #saveView() {
     const s = this.#state, farm = s.farmState;
-    const observations = availableObservations(s.observations, s.currentDate);
+    if (s.management) {
+      s.attention.remaining = s.management.attentionRemaining;
+      s.attention.spent = s.attention.dailyBudget - s.attention.remaining;
+      s.beliefs = updateBeliefs(farm.people, s.observations, `${s.currentDate}T${s.management.phase === 'morning' ? '08:00:00' : '23:59:59'}Z`);
+    }
+    const observations = availableObservations(s.observations, s.management ? `${s.currentDate}T${s.management.phase === 'morning' ? '08:00:00' : '23:59:59'}Z` : s.currentDate);
     const units = farm.productionUnits.map(unit => {
       const samples = observations.filter(o => o.productionUnitId === unit.id);
       const last = samples.toSorted((a,b)=>b.observedAt.localeCompare(a.observedAt))[0];
@@ -155,13 +167,15 @@ export class SimulationEngine {
       // Stage and potentials are hidden too; future UI must estimate them from evidence.
       observations, beliefs: s.beliefs, decisionCases: s.openDecisionCases,
       operations: s.scheduledOperations, resources: farm.resources, finance: farm.finance,
-      outcomes: s.outcomes, history: s.history }));
+      outcomes: s.outcomes, history: s.history,
+      ...(s.management ? { management: { ...farmManagementView(s), caseSessions: s.management.caseSessions } } : {}) }));
   }
 
   /** One calendar day, in the documented 11-phase order. Manual ticks ignore runner pause metadata. */
   advanceOneDay() {
     if (this.ended) return this.getPlayerView();
     const s = this.#state;
+    if (s.management && s.management.phase !== 'end_of_day') throw new Error('请先完成 Execution 与 End of Day，再进入次日早会');
     const date = addDays(s.currentDate, 1);
     const farm = s.farmState;
     // 1 world
@@ -192,7 +206,7 @@ export class SimulationEngine {
     for (const template of this.#fixture.decisionTemplates) {
       if (template.openedAt <= date && template.trigger === 'date') this.#openCase(template, date);
     }
-    this.#refreshCases(date);
+    if (!s.management) this.#refreshCases(date);
     // 8 operations: execution rechecks changed capacity/inventory
     const completed = this.#executeOperations(date);
     // 9 outcomes: trace actual execution, not hidden crop state
@@ -214,6 +228,11 @@ export class SimulationEngine {
     s.history.push({date,dayIndex:s.currentDayIndex,phases:[...DAILY_PHASES],eventIds:rolled.events.map(r=>r.id),
       completedOperationIds:completed.map(o=>o.id),cash:farm.finance.cash});
     s.pendingEvents = [];
+    if (s.management) {
+      advanceFarmMorning(s, this.#random, this.#fixture.scenario.endDate);
+      s.beliefs = updateBeliefs(farm.people, s.observations, `${date}T08:00:00Z`);
+      this.#refreshCases(date);
+    }
     this.#saveView();
     return this.getPlayerView();
   }
@@ -234,6 +253,12 @@ export class SimulationEngine {
     if (effect.type === 'resource_delta') resource.quantity = Math.max(0, resource.quantity + effect.amount);
     if (effect.type === 'resource_availability') {
       for (let day=0; day<(effect.durationDays ?? 1); day++) resource.availability[addDays(date,day)] = effect.factor;
+      if (this.#state.management && effect.resourceId === 'irrigation-rig') {
+        for (const equipment of Object.values(this.#state.management.equipment)) {
+          equipment.status = effect.factor === 0 ? 'Fault' : effect.factor < 1 ? 'Significant issue' : 'Normal';
+          equipment.issuePart = effect.factor < 1 ? 'Valves' : null;
+        }
+      }
     }
   }
 
@@ -272,6 +297,16 @@ export class SimulationEngine {
           createdAt:date,type:choice?.type || 'no_action',optionId:choice?.id || null,operation:choice?.operation || null,
           evidenceIds,reasonText:stress === null ? '没有当前水分估计，建议先检查以获得证据。'
             : `已送达证据估计水分胁迫为 ${stress.toFixed(2)}，建议${choice?.label || (choice?.type==='gather_information' ? '先进行现场检查' : '采用该行动方案')}。`,status:'pending'};
+        if (s.management) {
+          const visible = farmManagementView(s);
+          const units = visible.units.filter(u => decision.productionUnitIds.includes(u.id));
+          const risk = units.some(u => u.water.value >= 60), uncertain = units.some(u => u.water.confidence < 60);
+          const recommended = uncertain ? investigate : risk ? act : choice;
+          if (recommended) Object.assign(decision.delegationProposal, { type: recommended.type, optionId: recommended.id, operation: recommended.operation || null });
+          decision.delegationProposal.input = { units, weather: visible.weather, labor: visible.resources.labor, existingSchedule: visible.tasks };
+          decision.delegationProposal.confidence = units.length ? Math.round(units.reduce((sum, u) => sum + u.water.confidence, 0) / units.length) : 0;
+          decision.delegationProposal.reasonText = units.map(u => `${u.id}: Crop ${u.cropStatus}, Water ${u.water.value ?? 'Unknown'}, Freshness ${u.water.freshness}d, Confidence ${u.water.confidence}%, Equipment ${u.equipment.status}, Stage ${u.growthStage || 'Unknown'}, Sensors ${u.sensors.length}`).join('; ') + `; Weather ${visible.weather.temperature}°C / rain ${visible.weather.rainfall}mm; Labor remaining ${visible.resources.labor.remaining}; ${visible.tasks.filter(t => ['scheduled','blocked'].includes(t.executionStatus)).length} existing tasks. ${uncertain ? '先获取可靠证据。' : risk ? '优先降低已知水分风险。' : '依据已有证据与场景方案复查。'}`;
+        }
         decision.status = 'awaiting_approval';
         decision.actionHistory.push({type:'proposal_arrived',date,actorId:decision.delegatedTo,evidenceIds});
       }
@@ -285,6 +320,7 @@ export class SimulationEngine {
   }
 
   #attentionCheck(type) {
+    if (this.#state.management) return { cost: 0, conflicts: [] };
     const attention = this.#state.attention;
     const cost = attention.enabled ? (attention.costs[type] ?? 0) : 0;
     return {cost,conflicts:cost > attention.remaining + 1e-9
@@ -335,6 +371,11 @@ export class SimulationEngine {
   }
 
   #prepareOperation(input, replacedId = null) {
+    if (this.#state.management) {
+      const type = input.type === 'maintenance' ? 'repair' : input.type === 'irrigation' && !input.assignedResourceIds?.includes('irrigation-rig') ? 'manual_watering' : input.type;
+      return scheduleFarmTask(this.#state, { id: input.id, unitId: input.productionUnitIds[0], productionUnitIds: input.productionUnitIds,
+        actions: input.actions || [type], date: input.plannedStart, plan: input, decisionId: input.sourceId }, replacedId, true);
+    }
     const operation = createOperation(input);
     const s = this.#state;
     if (this.ended || operation.plannedStart <= this.currentDate || operation.plannedStart > this.#fixture.scenario.endDate) throw new RangeError('Operation must be on a remaining simulation day');
@@ -354,7 +395,7 @@ export class SimulationEngine {
 
   scheduleOperation(input) {
     const result = this.#prepareOperation(input);
-    if (!result.accepted) return {accepted:false,conflicts:result.conflicts};
+    if (!result.accepted) return { ...result, accepted:false,conflicts:result.conflicts || [] };
     this.#state.scheduledOperations.push(result.operation);
     this.#saveView();
     return {accepted:true,operation:clone(result.operation),conflicts:[]};
@@ -367,6 +408,14 @@ export class SimulationEngine {
       question:decision.title, selectedOptionId:selection.optionId || decision.delegationProposal?.optionId || null,
       viewpoints:clone(decision.viewpoints),
       reasonTags:clone(selection.reasonTags || []),reasonText:selection.reasonText || '',operationId,attentionCost:cost});
+    if (this.#state.management) {
+      const action = decision.actionHistory.at(-1);
+      action.decisionMaker = ['approve','proposal_arrived'].includes(type) ? (decision.delegatedTo === 'sentinel' ? 'AI Assistant' : 'Team') : 'Manager';
+      action.input = { units: farmManagementView(this.#state).units.filter(u => decision.productionUnitIds.includes(u.id)),
+        weather: clone(this.#state.management.weather), existingSchedule: clone(this.#state.scheduledOperations) };
+      action.confidence = decision.delegationProposal?.confidence ?? Math.round((decision.viewpoints[0]?.confidence || 0) * 100);
+      if (type === 'approve') action.rationale = decision.delegationProposal?.reasonText || '';
+    }
   }
 
   /** Accepted actions commit reservations, attention and traces together. Rejected actions change nothing. */
@@ -376,6 +425,10 @@ export class SimulationEngine {
     if (request?.result) return request.result;
     const s = this.#state;
     const decision = s.openDecisionCases.find(c=>c.id===caseId);
+    if (s.management) {
+      if (s.management.phase !== 'morning') throw new Error('只可在 Morning Meeting 决策');
+      if (selection.type === 'decide_now' && !s.management.caseSessions.includes(`${this.currentDate}:${caseId}`)) throw new Error('复杂判断请先进入经理决策，或交给 Team / AI Assistant');
+    }
     if (!decision || !['open','delayed'].includes(decision.status) || this.ended) throw new TypeError('Decision is unavailable');
     if (!DECISION_ACTIONS.includes(selection.type)) throw new TypeError('Unknown decision action');
     const options = [...decision.actionOptions,...decision.investigationOptions];
@@ -401,8 +454,8 @@ export class SimulationEngine {
     const next = this.#operationId();
     let result = {accepted:true,conflicts:[]};
     if (plan) {
-      result = this.#prepareOperation({...plan,id:next.id,sourceId:caseId,sourceType:'decision',plannedStart:selection.plannedStart || addDays(this.currentDate,1)});
-      if (!result.accepted) return {accepted:false,conflicts:result.conflicts};
+      result = this.#prepareOperation({...plan,id:next.id,sourceId:caseId,sourceType:'decision',plannedStart:selection.plannedStart || (this.#state.management ? this.currentDate : addDays(this.currentDate,1))});
+      if (!result.accepted) return { ...result, accepted:false,conflicts:result.conflicts || [] };
       s.scheduledOperations.push(result.operation);
       s.operationSequence = next.sequence;
       decision.resultingOperationIds.push(next.id);
@@ -422,6 +475,7 @@ export class SimulationEngine {
   }
 
   approveDelegation(caseId, selection = {}) {
+    if (this.#state.management && this.#state.management.phase !== 'morning') throw new Error('只可在 Morning Meeting 接受建议');
     selection = clone(selection);
     const request = this.#request(selection.requestId,'approve',{caseId,...selection});
     if (request?.result) return request.result;
@@ -430,11 +484,12 @@ export class SimulationEngine {
     const attention = this.#attentionCheck('approve');
     if (attention.conflicts.length) return {accepted:false,conflicts:attention.conflicts};
     const proposal = decision.delegationProposal;
+    if (this.#state.management && decision.delegatedTo === 'sentinel') selection = { requestId: selection.requestId || null };
     const next = this.#operationId();
     let result = {accepted:true,conflicts:[]};
     if (proposal.operation) {
-      result = this.#prepareOperation({...this.#resourcePlan(proposal.operation,selection),id:next.id,sourceId:caseId,sourceType:'decision',plannedStart:selection.plannedStart || addDays(this.currentDate,1)});
-      if (!result.accepted) return {accepted:false,conflicts:result.conflicts};
+      result = this.#prepareOperation({...this.#resourcePlan(proposal.operation,selection),id:next.id,sourceId:caseId,sourceType:'decision',plannedStart:selection.plannedStart || (this.#state.management ? this.currentDate : addDays(this.currentDate,1))});
+      if (!result.accepted) return { ...result, accepted:false,conflicts:result.conflicts || [] };
       this.#state.scheduledOperations.push(result.operation);
       this.#state.operationSequence = next.sequence;
       decision.resultingOperationIds.push(next.id);
@@ -450,6 +505,7 @@ export class SimulationEngine {
   }
 
   rejectDelegation(caseId, selection = {}) {
+    if (this.#state.management && this.#state.management.phase !== 'morning') throw new Error('只可在 Morning Meeting 拒绝建议');
     selection = clone(selection);
     const request = this.#request(selection.requestId,'reject',{caseId,...selection});
     if (request?.result) return request.result;
@@ -463,6 +519,7 @@ export class SimulationEngine {
   }
 
   inspectUnit(unitId, selection = {}) {
+    if (this.#state.management) return this.scheduleTask({ unitId, actions: ['inspection'], date: selection.plannedStart || this.currentDate, reason: selection.reasonText || '', ...(selection.crewId ? { crewId: selection.crewId } : {}), ...(selection.requestId ? { requestId: selection.requestId } : {}) });
     selection = clone(selection);
     const request = this.#request(selection.requestId,'inspect',{unitId,...selection});
     if (request?.result) return request.result;
@@ -474,8 +531,8 @@ export class SimulationEngine {
     const result = this.#prepareOperation({...this.#resourcePlan(this.#fixture.scenario.inspectionPlan,selection),id:next.id,type:'inspection',sourceType:'inspection',sourceId:unitId,
       productionUnitIds:[unitId],reasonText:selection.reasonText || '',
       evidenceIds:availableObservations(this.#state.observations,this.currentDate).filter(o=>o.status!=='invalid' && o.productionUnitId===unitId).map(o=>o.id),
-      plannedStart:selection.plannedStart || addDays(this.currentDate,1)});
-    if (!result.accepted) return {accepted:false,conflicts:result.conflicts};
+      plannedStart:selection.plannedStart || (this.#state.management ? this.currentDate : addDays(this.currentDate,1))});
+    if (!result.accepted) return { ...result, accepted:false,conflicts:result.conflicts || [] };
     this.#state.scheduledOperations.push(result.operation);
     this.#state.operationSequence = next.sequence;
     this.#spendAttention(attention.cost);
@@ -489,7 +546,7 @@ export class SimulationEngine {
     const old = this.#state.scheduledOperations.find(o=>o.id===operationId);
     if (!old || !['scheduled','blocked'].includes(old.executionStatus)) throw new TypeError('Operation cannot be rescheduled');
     const result = this.#prepareOperation({...old,plannedStart,executionStatus:'scheduled'},operationId);
-    if (!result.accepted) return {accepted:false,conflicts:result.conflicts};
+    if (!result.accepted) return { ...result, accepted:false,conflicts:result.conflicts || [] };
     result.operation.deviations.push({type:'manual_reschedule',date:this.currentDate,planned:old.plannedStart,actual:plannedStart});
     this.#state.scheduledOperations[this.#state.scheduledOperations.indexOf(old)] = result.operation;
     const decision = this.#state.openDecisionCases.find(c=>c.id===old.sourceId);
@@ -501,6 +558,7 @@ export class SimulationEngine {
     selection = clone(selection);
     const request = this.#request(selection.requestId,'purchase',{resourceId,quantity,...selection});
     if (request?.result) return request.result;
+    if (this.#state.management?.phase && this.#state.management.phase !== 'morning') throw new Error('资源采购请在 Morning Meeting 安排');
     nonnegative(quantity,'purchase quantity');
     const supply = this.#fixture.scenario.emergencySupplies.find(item=>item.resourceId===resourceId);
     if (this.ended || !supply || quantity<=0 || quantity> supply.maxQuantity) throw new TypeError('Purchase is unavailable or exceeds configured quantity');
@@ -520,7 +578,7 @@ export class SimulationEngine {
 
   #executeOperations(date) {
     const s = this.#state, farm = s.farmState;
-    const due = s.scheduledOperations.filter(o=>['scheduled','blocked'].includes(o.executionStatus) && o.plannedStart <= date)
+    const due = s.scheduledOperations.filter(o=>!o.feedbackTask && ['scheduled','blocked'].includes(o.executionStatus) && o.plannedStart <= date)
       .toSorted((a,b)=>b.priority-a.priority || a.id.localeCompare(b.id));
     const usage = new Map();
     const completed = [];
@@ -580,6 +638,53 @@ export class SimulationEngine {
       const belief = s.beliefs.find(b=>b.actorId===this.#playerActorId && b.productionUnitId===crop.productionUnitId && b.subject==='waterStress');
       return sum + pack.forecastRevenue(pack.varieties[crop.varietyId],belief?.estimate ?? 0.2);
     },0);
+  }
+
+  dismissOnboarding() { this.#state.management.onboarded = true; this.#saveView(); return { accepted: true, conflicts: [] }; }
+
+  getFarmCapacity(date, excludeId = null) { return clone(farmCapacity(this.#state, date, excludeId)); }
+  scheduleTask(input) {
+    const request = this.#request(input.requestId, 'task', input);
+    if (request?.result) return request.result;
+    const result = scheduleFarmTask(this.#state, clone(input));
+    if (!result.accepted) return { ...result, conflicts: result.conflicts || [] };
+    return this.#accepted(request, { ...result, operation: result.task, conflicts: [] });
+  }
+  cancelTask(id) {
+    const result = cancelFarmTask(this.#state, id);
+    if (result.accepted) {
+      const op = this.#state.scheduledOperations.find(t => t.id === id);
+      const decision = this.#state.openDecisionCases.find(d => d.id === op.sourceId);
+      if (decision) { decision.status = 'open'; this.#trace(decision, 'cancel', {}, id); }
+    }
+    this.#saveView(); return { ...result, conflicts: result.conflicts || [] };
+  }
+  rescheduleTask(id, date) { return this.rescheduleOperation(id, date); }
+  startExecution() {
+    const result = executeFarmDay(this.#state, this.#packs, this.#random);
+    if (result.accepted) this.#updateFinance(this.#state.scheduledOperations.filter(t => t.feedbackTask && t.actualStart === this.currentDate));
+    this.#saveView(); return { ...result, conflicts: result.conflicts || [] };
+  }
+  endExecution() {
+    if (this.#state.management.phase !== 'execution') return { accepted: false, conflicts: [], message: '请先进入 Execution' };
+    this.#state.management.phase = 'end_of_day'; this.#saveView(); return { accepted: true, conflicts: [] };
+  }
+  nextMorning() { return this.advanceOneDay(); }
+  enterDecisionCase(id) {
+    const s = this.#state, m = s.management;
+    if (!m || m.phase !== 'morning' || this.ended) throw new Error('只可在早会进入复杂判断');
+    if (!s.openDecisionCases.some(d => d.id === id)) throw new Error('决策不可用');
+    const key = `${this.currentDate}:${id}`;
+    if (m.caseSessions.includes(key)) return { accepted: true, conflicts: [] };
+    const capacity = farmCapacity(s, this.currentDate);
+    if (m.attentionRemaining - capacity.attentionReserved < 1) return { accepted: false, conflicts: [], message: 'Attention 已用完，仍可交给 Team / AI Assistant' };
+    m.attentionRemaining -= 1; m.caseSessions.push(key);
+    this.#trace(s.openDecisionCases.find(d => d.id === id), 'manager_judgment', {}, null, 1);
+    this.#saveView(); return { accepted: true, conflicts: [] };
+  }
+  openDecision(unitId, maker) { const result = openFarmDecision(this.#state, unitId, maker); this.#saveView(); return { ...result, conflicts: result.conflicts || [] }; }
+  resolveDecision(id, accept, reason = '', actions = null) {
+    const result = resolveFarmDecision(this.#state, id, accept, reason, actions); this.#saveView(); return { ...result, conflicts: result.conflicts || [] };
   }
 
   /** Engine-only persistence payload contains hidden state. NEVER expose this to players/agents. */

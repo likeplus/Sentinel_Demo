@@ -1,6 +1,6 @@
 export const SAVE_KEY = 'sentinel:farm-game:save:v1';
 export const SAVE_VERSION = 1;
-export const CONTENT_VERSION = 'farm-sim-phase2-v1';
+export const CONTENT_VERSION = 'farm-sim-phase2-feedback-v2';
 
 /** Deduplicate repeated historical observations, retaining current/stale versions separately. */
 export function encodeSave(checkpoint, requestSequence = 0) {

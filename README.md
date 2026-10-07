@@ -68,7 +68,7 @@ See [architecture and run instructions](./docs/04_Farm_Sim_Phase01_Architecture.
 
 The new `/game` route is a Chinese-first playable Yunnan blueberry management scenario with a dynamic SVG farm map, Production Unit details, delayed reports, approval-based delegation, Manager Attention, resource-aware scheduling, emergency water purchases, and a multi-dimensional end review. The original Demo routes remain available.
 
-On Windows, download or check out `feature/farm-sim-phase2`, open a terminal in that new checkout, then run:
+On Windows, use the integrated `feature/phase2-feedback` checkout (based on `feature/farm-sim-phase2`), open a terminal in that new checkout, then run:
 
 ```bat
 npm ci
@@ -77,7 +77,7 @@ npm run dev
 
 Open the **Local** address printed by Vite and append `/game` (normally `http://localhost:5173/game`). Keep this terminal running. An older running Demo server may occupy port 5173; use the address printed by the new terminal.
 
-Progress is automatically saved in this browser. Click **推进一天** to advance one day. Inspect a Production Unit, wait for the report to arrive, and use **决策中心** to choose an action or ask a subordinate for a proposal. Proposals require your approval. The normal scenario ends after 28 daily transitions. **经营管理** contains finance, water purchase, restart settings and the final review.
+Progress is automatically saved in this browser. The default overview is **Table View**; use **Spatial View** for the original dynamic map with multiple status layers. Schedule **Today** or future tasks during **Morning Meeting**, then click **开始 Execution → 进入 End of Day → Next Morning**. The meeting costs 1 Attention; ordinary scheduling is free. Inspections may include watering, spraying, repair or a sensor move. Complex decisions may be delegated to Team / AI even with zero Attention; proposals need Accept / Reject. The normal scenario ends after 28 daily cycles. **经营管理** contains finance, water purchase, restart settings and the final review.
 
 ```sh
 npm test
@@ -90,4 +90,19 @@ npm run test:routes
 
 The browser scripts accept `SMOKE_BASE_URL` and `PUPPETEER_EXECUTABLE_PATH`; on Windows point the latter to an installed Chrome/Chromium executable. Parameters remain illustrative training values. Same seed reproducibility requires the same content version and ordered player inputs.
 
-See [Phase 2 implementation scope](docs/05_Farm_Sim_Phase2_Spec.md), [game architecture and playing guide](docs/06_Farm_Sim_Phase2_Playing_Guide.md), and [Phase 2 verification](docs/validation/phase2-results.md). The original project designs are preserved under `docs/design/` as Word documents and readable Markdown.
+See [Phase 2 implementation scope](docs/05_Farm_Sim_Phase2_Spec.md), [game architecture and playing guide](docs/06_Farm_Sim_Phase2_Playing_Guide.md), and [original Phase 2 verification](docs/validation/phase2-results.md) and [integrated feedback acceptance](docs/validation/phase2-feedback-results.md). The original project designs are preserved under `docs/design/` as Word documents and readable Markdown.
+
+## Phase 2 feedback release design
+
+团队后续设计基线：[Phase 2 试玩反馈版产品与交互设计方案](docs/07_Phase2_Feedback_Design.md)。包含玩法闭环、信息与资源规则、决策与历史、八个界面、双语、可扩展知识卡片、实现入口、验收及 PC 试玩步骤。
+
+最新反馈代码在 `feature/phase2-feedback` 分支。PC 获取该分支：
+
+```sh
+git clone --branch feature/phase2-feedback https://github.com/likeplus/Sentinel_Demo.git
+cd Sentinel_Demo
+npm ci
+npm run dev
+```
+
+打开终端 Local 地址加 `/game`。也可在 GitHub 切到该分支，通过 Code → Download ZIP 获取源码（不是截图压缩包）。

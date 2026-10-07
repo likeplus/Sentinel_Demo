@@ -289,3 +289,10 @@
 .fg-timeline-nodes small { display: block; color: var(--fg-muted); font-size: 10px; margin-bottom: 5px; }
 .fg-timeline-nodes strong { display: block; font-size: 11px; font-weight: 500; }
 .fg-review-dimensions .fg-finance dd { font-size: 13px; text-align: right; }
+
+.fg-language-tabs { display:flex; gap:3px; padding:3px; border:1px solid var(--fg-border); border-radius:7px; background:#f0f3eb; flex-shrink:0; }
+.fg-language-tabs button { border:0; background:transparent; padding:5px 9px; border-radius:4px; color:#6b795d; font:inherit; font-size:11px; cursor:pointer; }
+.fg-language-tabs button[aria-selected="true"] { background:#25573e; color:#fff; }
+.fg-language-tabs button:focus-visible { outline:2px solid #69954e; outline-offset:2px; }
+.farm-game[lang="en"] .fg-nav-item > span { font-size:12px; }
+@media(max-width:760px) { .fg-topbar-tools { gap:6px; } .fg-language-tabs button { padding:5px 7px; } .fg-breadcrumb { max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .fg-save-status { font-size:9px; } }

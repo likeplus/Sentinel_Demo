@@ -1,3 +1,4 @@
+import { withPlaytestFeedback } from './feedbackFixture.js';
 import { SimulationEngine } from '../simulation/SimulationEngine.js';
 import { blueberryPack } from '../crop-packs/blueberry/index.js';
 import { createYunnanBlueberryFixture } from '../scenarios/yunnan-blueberry-28d/index.js';
@@ -25,6 +26,7 @@ export class GameController {
   constructor(options = {}) {
     this.#registry = options.cropPacks || REGISTRY;
     this.#baseFixture = clone(options.fixture || createYunnanBlueberryFixture(options.scenarioOverrides || {}));
+    if (options.feedback) this.#baseFixture = withPlaytestFeedback(this.#baseFixture);
     if (Object.hasOwn(options, 'storage')) this.#storage = options.storage;
     else {
       try { this.#storage = typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage; }
@@ -97,7 +99,7 @@ export class GameController {
     try {
       const result = action();
       const response = result?.accepted === undefined ? { accepted: true, conflicts: [] } : result;
-      this.#error = response.accepted ? null : response.conflicts.map(conflict => this.#conflictMessage(conflict)).join('；');
+      this.#error = response.accepted ? null : response.message || (response.conflicts || []).map(conflict => this.#conflictMessage(conflict)).join('；') || '操作未被接受';
       if (response.accepted) this.#save();
       this.#publish();
       return { ...response, error: this.#error };
@@ -108,7 +110,17 @@ export class GameController {
     }
   }
 
-  advance() { return this.#run(() => this.#engine.advanceOneDay()); }
+  advance() { return this.#run(() => {
+    const phase = this.#engine.getPlayerView().management?.phase;
+    return phase === 'morning' ? this.#engine.startExecution() : phase === 'execution' ? this.#engine.endExecution() : this.#engine.advanceOneDay();
+  }); }
+  capacity(date, excludeId = null) { return this.#engine.getFarmCapacity(date, excludeId); }
+  scheduleTask(input) { return this.#run(() => this.#engine.scheduleTask({ ...input, requestId: input.requestId || this.#request() })); }
+  cancelTask(id) { return this.#run(() => this.#engine.cancelTask(id)); }
+  openDecision(unitId, maker) { return this.#run(() => this.#engine.openDecision(unitId, maker)); }
+  resolveDecision(...args) { return this.#run(() => this.#engine.resolveDecision(...args)); }
+  enterDecisionCase(id) { return this.#run(() => this.#engine.enterDecisionCase(id)); }
+  dismissOnboarding() { return this.#run(() => this.#engine.dismissOnboarding()); }
   decide(caseId, selection) { return this.#run(() => this.#engine.decide(caseId, { ...selection, requestId: selection.requestId || this.#request() })); }
   inspect(unitId, options = {}) { return this.#run(() => this.#engine.inspectUnit(unitId, { ...options, requestId: options.requestId || this.#request() })); }
   approve(caseId, selection = {}) { return this.#run(() => this.#engine.approveDelegation(caseId, { ...selection, requestId: selection.requestId || this.#request() })); }

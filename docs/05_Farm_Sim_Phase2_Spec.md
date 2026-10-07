@@ -1,5 +1,7 @@
 # Sentinel Farm Simulation — Phase 2 网页试玩实施规格 v0.1
 
+> 试玩反馈规则已在 Phase 2 基础上整合；本文件记录原阶段范围。每日阶段、Attention、当天排程、组合任务、取消和状态表以 [更新后的试玩指南](06_Farm_Sim_Phase2_Playing_Guide.md) 为准。
+
 日期：2026-10-04（Europe/Amsterdam）。状态：用户已确认本方案并授权实施；审批式委派与自动存档为本阶段要求。
 
 ## 1. 依据与准备情况

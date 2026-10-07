@@ -1,0 +1,28 @@
+.fg-unit-panel.fg-unit-organized { padding: 0; overflow: hidden; }
+.fg-unit-header { padding: 20px 20px 16px; background: #f5f8f5; border-bottom: 1px solid #e3eae5; }
+.fg-unit-header h2 { margin: 7px 0; font-size: 26px; }
+.fg-unit-header p { margin: 0; color: #66796e; font-size: 11px; }
+.fg-unit-section { padding: 16px 18px; border-bottom: 1px solid #e7ece7; }
+.fg-unit-section:last-child { border-bottom: 0; }
+.fg-unit-section h3, .fg-unit-section summary { font-size: 13px; font-weight: 700; color: #264d3d; margin: 0 0 12px; }
+.fg-unit-section summary { cursor: pointer; margin: 0; }
+.fg-unit-section summary span, .fg-unit-section h3 > span { float: right; color: #819287; font-weight: 500; }
+.fg-unit-section details[open] > summary { margin-bottom: 14px; }
+.fg-unit-section p, .fg-unit-section li { font-size: 11px; line-height: 1.8; }
+.fg-unit-water { padding: 12px 14px; border-radius: 10px; background: #f6f8f4; border-left: 3px solid var(--color); color: var(--color); }
+.fg-unit-water > div { display: flex; justify-content: space-between; font-size: 11px; }
+.fg-unit-water strong { display: block; font-size: 32px; margin: 4px 0; letter-spacing: -1px; }
+.fg-unit-water strong small { font-size: 12px; font-weight: 400; color: #7a877f; letter-spacing: 0; }
+.fg-unit-water p { margin: 0; color: #697b70; font-size: 10px; }
+.fg-unit-water em { display: block; font-style: normal; color: #9d6a23; }
+.fg-unit-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.fg-unit-status-grid > div > span, .fg-unit-evidence-grid span { display: block; font-size: 10px; color: #76857a; margin-bottom: 6px; }
+.fg-unit-status-grid b { font-size: 12px; }.fg-unit-status-grid small { display: block; font-size: 9px; color: #859186; margin-top: 5px; }
+.fg-unit-stage { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; padding: 11px 0; border-top: 1px solid #e8ece7; }
+.fg-unit-stage span { color: #76857a; }.fg-unit-stage b { text-align: right; }
+.fg-unit-evidence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding-top: 10px; border-top: 1px solid #e8ece7; }.fg-unit-evidence-grid b { font-size: 17px; }
+.fg-unit-section dl { display: grid; grid-template-columns: auto 1fr; gap: 8px; font-size: 10px; }.fg-unit-section dt { color: #7d897f; }.fg-unit-section dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.fg-unit-report { background: #f6f8f5; padding: 10px; border-radius: 8px; }.fg-unit-report h4 { margin: 0 0 6px; font-size: 12px; }.fg-unit-report ul { padding-left: 15px; }.fg-unit-report small { font-size: 10px; }
+.fg-unit-tasks { display: grid; gap: 8px; }.fg-unit-tasks button { padding: 10px; border: 1px solid #e5eae3; background: #fafbf8; border-radius: 7px; text-align: left; cursor: pointer; }.fg-unit-tasks small { display: block; font-size: 10px; color: #7a887e; }.fg-unit-tasks strong { display: block; font-size: 11px; line-height: 1.6; margin: 4px 0; }
+.fg-unit-actions > .fg-button, .fg-unit-actions .fg-inspection > .fg-button { justify-content: center; min-height: 38px; font-size: 11px; }.fg-unit-actions .fg-inspection { margin: 8px 0 14px; }
+.fg-unit-delegation { padding-top: 14px; border-top: 1px solid #e7ece5; }.fg-unit-delegation .fg-button { display: flex; width: 100%; margin-top: 7px; justify-content: center; white-space: normal; font-size: 10px; }.fg-unit-knowledge { margin-top: 16px; font-size: 11px; }

@@ -29,7 +29,8 @@ export function createOperation(input) {
     actualResourceIds: [], actualOutput: null, travelOverhead: 0, executionStatus: 'scheduled', deviations: [],
     cost: 0, resourceQuantities: {}, maintenanceEffects: [] }, input, ['id', 'type', 'plannedStart']);
   dateMs(operation.plannedStart);
-  if (!DAY_ALLOCATIONS.includes(operation.plannedDurationDays)) throw new RangeError('Use quarter-day allocations');
+  if (!DAY_ALLOCATIONS.includes(operation.plannedDurationDays)
+    && !(operation.feedbackTask && Number.isFinite(operation.plannedDurationDays) && operation.plannedDurationDays >= 0 && operation.plannedDurationDays <= 1)) throw new RangeError('Use quarter-day allocations');
   nonnegative(operation.travelOverhead, 'travelOverhead');
   nonnegative(operation.cost, 'cost');
   nonnegative(operation.priority, 'priority');

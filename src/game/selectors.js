@@ -1,8 +1,9 @@
+import { FARM_ACTIONS } from '../simulation/FarmManagement.js';
 import { availableCapacity } from '../domain/resources.js';
 import { addDays, daysBetween } from '../domain/validation.js';
 
 const STAGES = { vegetative: '营养生长期', flowering: '开花期', fruit_set: '坐果期', ripening: '转熟期', harvest: '采收期' };
-const SOURCES = { sensor: '传感器', worker: '工人', lab: '实验室', scout: '巡查', inspection: '现场检查' };
+const SOURCES = { manager: '经理巡查', sensor: '传感器', worker: '工人', lab: '实验室', scout: '巡查', inspection: '现场检查' };
 const latest = samples => [...samples].sort((a, b) => b.observedAt.localeCompare(a.observedAt) || b.availableAt.localeCompare(a.availableAt))[0];
 const number = value => Number(value || 0).toLocaleString('zh-CN', { maximumFractionDigits: 1 });
 const currency = value => `¥${number(value)}`;
@@ -32,10 +33,16 @@ export function buildGameModel(view, metadata = {}) {
       observedAt: waterSample?.observedAt ?? null, availableAt: waterSample?.availableAt ?? null,
       source: belief ? `经理综合 ${used.length} 条可用观测` : waterSample ? SOURCES[waterSample.sourceType] || waterSample.sourceType : '尚无水分观测',
       confidence: belief?.confidence ?? waterSample?.reliability ?? null, evidenceIds: used.map(sample => sample.id) };
+    const feedback = view.management?.units.find(u => u.id === unit.id);
+    if (feedback) Object.assign(water, { value: feedback.water.value === null ? null : feedback.water.value / 100,
+      label: feedback.water.value === null ? '水分信息未知' : `Water Stress ${feedback.water.value}${feedback.water.provisional ? '（预计）' : ''}`,
+      confidence: feedback.water.confidence / 100, freshness: feedback.water.freshness, range: feedback.water.range,
+      observedAt: feedback.water.observedAt, source: SOURCES[feedback.water.source] || feedback.water.source,
+      status: feedback.water.value === null ? 'unknown' : feedback.water.freshness > 3 ? 'stale' : 'current' });
     const thresholds = metadata.riskThresholds || { high: 0.6, medium: 0.35 };
-    const level = waterValue === null ? 'unknown' : waterValue >= thresholds.high ? 'high' : waterValue >= thresholds.medium ? 'medium' : 'low';
+    const level = water.value === null ? 'unknown' : water.value >= thresholds.high ? 'high' : water.value >= thresholds.medium ? 'medium' : 'low';
     return { ...unit, varietyId: crop?.varietyId ?? 'unknown', varietyName: variety?.name || crop?.varietyId || '品种未知',
-      cropId: crop?.id ?? null, stage, water,
+      cropId: crop?.id ?? null, ...(feedback || {}), stage, water,
       risk: { level, label: { unknown: '风险未知', high: '水分风险高', medium: '水分风险中', low: '水分风险低' }[level], status: water.status },
       observations: [...observations].sort((a, b) => b.availableAt.localeCompare(a.availableAt) || b.observedAt.localeCompare(a.observedAt)),
       operations: view.operations.filter(operation => operation.productionUnitIds.includes(unit.id)),
@@ -56,7 +63,7 @@ export function buildGameModel(view, metadata = {}) {
     return sum + Math.max(0, availableCapacity(resource, nextDate) - reserved);
   }, 0);
   const timeline = plannedOperations.map(operation => ({ id: operation.id, date: operation.plannedStart,
-    label: `${operation.type === 'inspection' ? '巡查' : operation.type === 'irrigation' ? '灌溉' : '维护'} · ${operation.productionUnitIds.join(' / ')}`,
+    label: `${operation.actions ? operation.actions.map(a => FARM_ACTIONS[a]?.zh || a).join(' + ') : operation.type === 'inspection' ? '巡查' : operation.type === 'irrigation' ? '灌溉' : '维护'} · ${operation.productionUnitIds.join(' / ')}`,
     type: 'operation', productionUnitIds: operation.productionUnitIds }));
   for (const decision of activeCases) {
     const date = decision.status === 'delegated' ? decision.proposalDueAt : decision.status === 'delayed' ? decision.nextReviewAt : decision.deadline;
@@ -69,7 +76,7 @@ export function buildGameModel(view, metadata = {}) {
   timeline.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   const review = buildReview(view, units, metadata);
   return { units, clusters, varieties, activeCases, openCaseCount: activeCases.length, plannedOperations, criticalResources,
-    laborAvailable, timeline: timeline.filter(item => item.date >= view.currentDate && item.date <= addDays(view.currentDate, 14)
+    laborAvailable: view.management?.resources.labor.remaining ?? laborAvailable, timeline: timeline.filter(item => item.date >= view.currentDate && item.date <= addDays(view.currentDate, 14)
       && item.date <= scenario.endDate).slice(0, 14), review,
     totalDays, elapsedDays: view.currentDayIndex, date: view.currentDate, nextDate, attention: view.attention,
     scenarioName: scenario.name, endDate: scenario.endDate };
@@ -77,7 +84,7 @@ export function buildGameModel(view, metadata = {}) {
 
 function buildReview(view, units, metadata) {
   const completed = view.operations.filter(operation => operation.executionStatus === 'completed');
-  const irrigation = completed.filter(operation => operation.type === 'irrigation');
+  const irrigation = view.operations.filter(o => o.actualStart).filter(operation => operation.type === 'irrigation' || operation.actions?.some(a => ['irrigation', 'manual_watering'].includes(a)));
   const waterId = view.resources.find(resource => resource.type === 'water')?.id;
   const waterResource = view.resources.find(resource => resource.id === waterId);
   const purchased = (view.finance.emergencyPurchases || []).reduce((sum, purchase) => sum + (purchase.resourceId === waterId ? purchase.quantity || 0 : 0), 0);
@@ -86,16 +93,17 @@ function buildReview(view, units, metadata) {
     unknownUnits: units.filter(unit => unit.water.status === 'unknown').length,
     staleUnits: units.filter(unit => unit.water.status === 'stale').length, highRiskUnits: units.filter(unit => unit.risk.level === 'high').length };
   const water = { remaining: waterResource?.quantity ?? 0, initialQuantity: metadata.initialResources?.find(resource => resource.id === waterId)?.quantity ?? 0,
-    irrigationInput: irrigation.reduce((sum, operation) => sum + (operation.resourceQuantities[waterId] || 0), 0),
+    irrigationInput: irrigation.reduce((sum, operation) => sum + (operation.actualOutput?.waterConsumed ?? operation.resourceQuantities[waterId] ?? 0), 0),
     actualApplied: irrigation.reduce((sum, operation) => sum + (operation.actualOutput.water || 0), 0), purchased };
   const operations = { planned: view.operations.length, completed: completed.length,
     blocked: view.operations.filter(operation => operation.executionStatus === 'blocked').length,
     delayed: view.operations.filter(operation => operation.deviations.some(deviation => ['delay', 'attendance_delay', 'manual_reschedule', 'resource_unavailable'].includes(deviation.type))).length };
   const histories = view.decisionCases.flatMap(decision => decision.actionHistory || []);
-  const decisions = { total: view.decisionCases.length, resolved: view.decisionCases.filter(decision => decision.status === 'resolved').length,
-    withReasons: histories.filter(action => action.reasonText || action.reasonTags?.length).length,
-    investigations: view.operations.filter(operation => operation.type === 'inspection').length,
-    delegations: histories.filter(action => action.type === 'delegate').length };
+  const feedbackDecisions = view.management?.decisions || [];
+  const decisions = { total: view.decisionCases.length + feedbackDecisions.length, resolved: view.decisionCases.filter(decision => decision.status === 'resolved').length + feedbackDecisions.filter(d => ['completed', 'rejected', 'deferred', 'cancelled'].includes(d.status)).length,
+    withReasons: histories.filter(action => action.reasonText || action.reasonTags?.length).length + feedbackDecisions.filter(d => d.rationale).length,
+    investigations: view.operations.filter(operation => operation.type === 'inspection' || operation.actions?.some(a => a.endsWith('inspection'))).length,
+    delegations: histories.filter(action => action.type === 'delegate').length + feedbackDecisions.filter(d => d.maker !== 'Manager').length };
   const dimensions = [
     { id: 'finance', label: '财务状况', summary: '现金与已发生费用单独核对；预计收入并未实现。', metrics: [
       { label: '期末现金', value: currency(financial.cash) }, { label: '已发生成本', value: currency(financial.operatingCost) },
