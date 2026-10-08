@@ -13,6 +13,7 @@ import {
     zoneIntervals,
     perUnitTimeSeries,
 } from '../data/mockData';
+import { publicAsset } from '../publicAsset.js';
 import { pick, localeTag } from '../i18n/locale.js';
 
 const SENSOR_TYPE_META = {
@@ -46,8 +47,8 @@ const TELEMETRY_WINDOWS = [
 const statusColor = { online: '#34d399', warning: '#f59e0b', offline: '#ef4444' };
 
 const CAMERA_STREAMS = {
-    blueberry: ['/drone_rgb_field.png', '/satellite_ndvi.png', '/leaf_wetness_closeup.png'],
-    flower: ['/images/iot_greenhouse.png', '/images/field_team.png', '/pest_trap_macro.png'],
+    blueberry: ['/drone_rgb_field.png', '/satellite_ndvi.png', '/leaf_wetness_closeup.png'].map(publicAsset),
+    flower: ['/images/iot_greenhouse.png', '/images/field_team.png', '/pest_trap_macro.png'].map(publicAsset),
 };
 
 const getWindow = (key) => TELEMETRY_WINDOWS.find(w => w.key === key) || TELEMETRY_WINDOWS[1];

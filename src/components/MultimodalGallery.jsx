@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
 import Icon from './Icon';
 import useStore from '../engine/store';
+import { publicAsset } from '../publicAsset.js';
 import { pick, localeTag } from '../i18n/locale.js';
 import { multimodalImagery } from '../data/mockData';
 
@@ -89,7 +90,7 @@ export default function MultimodalGallery({ compact = false }) {
                             <span>{t('Feed unavailable', '画面暂不可用')}</span>
                         </div>
                     ) : (
-                        <img src={`/${liveFeeds[streamIndex].filename}`} alt={t('Live Feed', '实时画面')} loading="lazy" onError={() => markImageFailed(liveFeeds[streamIndex].filename)} />
+                        <img src={publicAsset(liveFeeds[streamIndex].filename)} alt={t('Live Feed', '实时画面')} loading="lazy" onError={() => markImageFailed(liveFeeds[streamIndex].filename)} />
                     )}
                     <div className="mm-thumb-label">
                         <Icon name={typeIcons[liveFeeds[streamIndex].type]} size={10} color={typeColors[liveFeeds[streamIndex].type]} />
@@ -105,7 +106,7 @@ export default function MultimodalGallery({ compact = false }) {
                                 <span>{t('Feed unavailable', '画面暂不可用')}</span>
                             </div>
                         ) : (
-                            <img src={`/${img.filename}`} alt={sourceText(img, locale)} loading="lazy" onError={() => markImageFailed(img.filename)} />
+                            <img src={publicAsset(img.filename)} alt={sourceText(img, locale)} loading="lazy" onError={() => markImageFailed(img.filename)} />
                         )}
                         <div className="mm-thumb-label">
                             <Icon name={typeIcons[img.type]} size={10} color={typeColors[img.type]} />
@@ -141,7 +142,7 @@ export default function MultimodalGallery({ compact = false }) {
                                     <span>{t('Feed unavailable', '画面暂不可用')}</span>
                                 </div>
                             ) : (
-                                <img src={`/${img.filename}`} alt={sourceText(img, locale)} loading="lazy" onError={() => markImageFailed(img.filename)} />
+                                <img src={publicAsset(img.filename)} alt={sourceText(img, locale)} loading="lazy" onError={() => markImageFailed(img.filename)} />
                             )}
                             <div className="mm-card-type" style={{ background: typeColors[img.type] }}>
                                 <Icon name={typeIcons[img.type]} size={10} color="#fff" />
@@ -177,7 +178,7 @@ function ImageModal({ img, onClose, failed, onImageError, locale }) {
                             <span>{t('Feed unavailable', '画面暂不可用')}</span>
                         </div>
                     ) : (
-                        <img src={`/${img.filename}`} alt={sourceText(img, locale)} onError={onImageError} />
+                        <img src={publicAsset(img.filename)} alt={sourceText(img, locale)} onError={onImageError} />
                     )}
                 </div>
                 <div className="mm-modal-sidebar">

@@ -1,3 +1,4 @@
+import { publicAsset } from '../publicAsset.js';
 import React from 'react';
 import Icon from '../components/Icon';
 
@@ -21,7 +22,7 @@ export default function Intro() {
             <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 400, height: 400, background: 'rgba(16, 185, 129, 0.05)', borderRadius: '50%', filter: 'blur(100px)' }} />
 
             <div style={{ animation: 'fadeInUp 1s ease-out' }}>
-                <img src="/sentinel_logo.png" alt="Sentinel" style={{ width: 120, height: 120, marginBottom: 40, filter: 'drop-shadow(0 0 20px rgba(52, 211, 153, 0.4))' }} />
+                <img src={publicAsset('sentinel_logo.png')} alt="Sentinel" style={{ width: 120, height: 120, marginBottom: 40, filter: 'drop-shadow(0 0 20px rgba(52, 211, 153, 0.4))' }} />
 
                 <h1 style={{ fontSize: '4rem', fontWeight: 800, letterSpacing: 8, margin: 0, background: 'linear-gradient(to right, #f8fafc, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                     SENTINEL
