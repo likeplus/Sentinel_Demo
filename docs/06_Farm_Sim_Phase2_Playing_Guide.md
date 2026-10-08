@@ -1,6 +1,6 @@
 # Phase 2 — Farm Manager 网页试玩与架构
 
-本阶段新增 `/game`，保留九条原 Demo 路由。默认是云南蓝莓 28 天管理训练：一个农场、三个分区、十二个 Production Unit、三个蓝莓品种。数量、日期、资源及品种来自配置。
+本轮流程更新见 [农场经理试玩流程设计](09_Phase2_Manager_Flow_Design.md)。本阶段新增 `/game`，保留九条原 Demo 路由。默认是云南蓝莓 28 天管理训练：一个农场、三个分区、十二个 Production Unit、三个蓝莓品种。数量、日期、资源及品种来自配置。
 
 ## Windows 如何打开新版本
 
@@ -14,18 +14,18 @@
 
 ## 建议的第一轮试玩（反馈整合版）
 
-- 新游戏阅读简短引导。默认 Table View 分开显示水分、作物、可信度、新鲜度、设备、传感器和最新观测；点击单元查看详情与阶段指南。
+- 新游戏默认打开今日工作并阅读简短引导。总览默认 Table View 分开显示水分、作物、可信度、新鲜度、设备、传感器和最新观测；点击单元查看详情与阶段指南。
 - 切到 Spatial View 体验原 Phase 2 地图、筛选、缩放、分区聚合及键盘选择。Water / Crop / Freshness / Equipment 可同时显示，不合成总分。
 - 在 Operations 选择 Today，安排 Field Inspection，可附加 Manual Watering、Spraying、Repair、Sensor Relocation。表单实时显示总 Labor、Attention、库存和选定日期容量；未来任务也使用相同资源检查。
 - 同单元、同日期、同 Action 不可重复（经理/班组巡查属于同一种 Inspection）。重复提示提供 View / Reschedule / Cancel。未执行任务取消后释放预约，不产生观测。
 - 点击“开始 Execution”执行今天任务，日期保持不变。查看 Today 的作物与设备巡查、作业结果和补水预计影响；新问题留到第二天早会处理。
-- 点击“进入 End of Day”复盘，再点击“Next Morning”，日期前进一天，天气、ET、生长阶段和设备影响进入正式更新。传感器更新水分 Freshness，不能代替作物巡查。
+- 执行后自动进入日终结果，查看完成与受阻，再点击“次日早会”，日期前进一天，天气、ET、生长阶段和设备影响进入正式更新。传感器更新水分 Freshness，不能代替作物巡查。
 - 早会固定消耗 1 Attention；普通安排不额外扣除。复杂经理判断进入时消耗 1，经理亲自巡查预留 2、Labor 0、巡查置信度 100%；额外现场工作正常消耗 Labor。
 - Attention 用完仍可安排普通任务，复杂问题可 Delegate to Team / AI Assistant。AI 仅 Accept / Reject，接受不扣 Attention；建议和记录含当时可见信息、自动 rationale、confidence、关联作业和最终结果。
 - 原 Phase 2 的问题、人员观点、延迟实验室报告与下属审批流程继续保留。默认开场数据保留 unknown / stale；没有证据不会读取隐藏作物状态。
 - 经营管理继续提供现金、预计收入、成本、资金流水、显式确认的应急采购、seed/时长重开和五维季末复盘。
 
-默认索引 0、2026-03-01 开始；每个游戏日有三个阶段按钮，不再一次点击跨过一整天。28 个循环后在 2026-03-29 结束，最后可安排任务日期是 2026-03-28。
+默认索引 0、2026-03-01 开始；每个游戏日保留三个内部阶段，界面推进为两次点击：开始执行后自动停在日终，随后主动进入次日早会，不再一次点击跨过一整天。28 个循环后在 2026-03-29 结束，最后可安排任务日期是 2026-03-28。
 
 资源示例：巡查 Labor 1，人工补水 Labor 2，因此组合为 Labor 3；喷施、维修、迁移各 Labor 1。班组完整日容量换算为 8 Labor；原场景方案的半天作业仍占 4 Labor。数值是可调整的 Demo 参数。
 
@@ -103,3 +103,5 @@ npm run test:game
 新增玩法模块请扩展 `src/game/content/gameplayGuide.js`；新作物请在 `src/game/content/cropKnowledge.js` 用作物包 ID 注册双语章节/阶段/卡片。页面共用 `GuideViews.jsx` 渲染。百科中的市场与多年生知识不自动开启价格、物流或多年树龄模拟。
 
 双语与新入口自动验收：`npm run test:game:locale`。六个关键视图的完整中文截图见 `docs/validation/screenshots/latest/`。
+
+本轮新增：表格下方、表格行、卡片和地图支持共用多选；就地安排同一天同一动作，整批全部通过预检才提交。原内容版本的旧对象池存档兼容读取。最新检查见 [流程优化验收](validation/manager-flow-results.md)；上文原始验收的历史存储限制以该记录的实测范围为准。

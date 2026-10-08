@@ -25,19 +25,23 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
     page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
     await page.setViewport({ width: 1440, height: 1000 });
     const click = async id => { const sel = `[data-testid="${id}"]`; await page.waitForSelector(sel); await page.$eval(sel, el => el.scrollIntoView({ block: 'center' })); await page.click(sel); };
-    const checkpoint = () => page.evaluate(() => JSON.parse(localStorage.getItem('sentinel:farm-game:save:v1')).checkpoint);
+    const { decodeSave } = await import('../src/game/persistence.js');
+    const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
     await page.goto(`${origin}${base}#/game`, { waitUntil: 'networkidle0' });
-    await page.waitForSelector('[data-testid="farm-status-table"]');
+    await click('tab-map'); await page.waitForSelector('[data-testid="farm-status-table"]');
     await click('onboarding-dismiss');
     for (const tab of ['map', 'today', 'operations', 'units', 'decisions', 'management', 'guide', 'knowledge']) await click(`tab-${tab}`);
     await click('locale-en'); const before = await checkpoint();
     await page.reload({ waitUntil: 'networkidle0' }); assert.deepEqual(await checkpoint(), before);
     assert.equal(await page.$eval('[data-testid="game-root"]', el => el.dataset.locale), 'en');
     await click('tab-operations'); await click('task-confirm');
+    await page.select('[data-testid="task-unit"]', 'PU-02'); await page.select('[data-testid="task-unit"]', 'PU-01');
+    const route = page.url(), id = (await checkpoint()).state.scheduledOperations[0].id;
+    await click(`duplicate-view-${id}`); assert.equal(page.url(), route, 'duplicate task navigation preserves #/game on Pages');
     await click('advance-day');
     assert.equal((await checkpoint()).state.scheduledOperations[0].executionStatus, 'completed');
-    assert.equal((await checkpoint()).state.management.phase, 'execution');
-    await page.reload({ waitUntil: 'networkidle0' }); assert.equal((await checkpoint()).state.management.phase, 'execution');
+    assert.equal((await checkpoint()).state.management.phase, 'end_of_day');
+    await page.reload({ waitUntil: 'networkidle0' }); assert.equal((await checkpoint()).state.management.phase, 'end_of_day');
     // Link navigation must preserve the project directory when returning to the old app.
     await page.$eval('.fg-sidebar-bottom a', el => el.click());
     await page.waitForSelector('.page-title'); assert.equal(new URL(page.url()).pathname, base);

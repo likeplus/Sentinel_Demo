@@ -19,6 +19,7 @@ export class GameController {
   #baseFixture;
   #listeners = new Set();
   #snapshot;
+  #previewCache = new Map();
   #requestSequence = 0;
   #storageStatus = { state: 'memory', message: '本轮暂存于内存' };
   #error = null;
@@ -67,6 +68,7 @@ export class GameController {
   }
 
   #publish() {
+    this.#previewCache.clear();
     const view = this.#engine?.getPlayerView() ?? null;
     this.#snapshot = { view, model: view ? buildGameModel(view, this.#metadata()) : null,
       storageStatus: { ...this.#storageStatus }, error: this.#error };
@@ -114,6 +116,26 @@ export class GameController {
     const phase = this.#engine.getPlayerView().management?.phase;
     return phase === 'morning' ? this.#engine.startExecution() : phase === 'execution' ? this.#engine.endExecution() : this.#engine.advanceOneDay();
   }); }
+  executeDay() { return this.#run(() => {
+    const phase = this.#engine.getPlayerView().management.phase;
+    if (phase === 'morning') {
+      const result = this.#engine.startExecution();
+      if (!result.accepted) return result;
+      return this.#engine.endExecution();
+    }
+    return phase === 'execution' ? this.#engine.endExecution() : this.#engine.advanceOneDay();
+  }); }
+  previewTasks(input) {
+    const key = JSON.stringify(input);
+    if (!this.#previewCache.has(key)) this.#previewCache.set(key, this.#engine.previewTasks(input));
+    return clone(this.#previewCache.get(key));
+  }
+  previewOperation(plan, date, crewId = '') {
+    const key = JSON.stringify({ plan, date, crewId });
+    if (!this.#previewCache.has(key)) this.#previewCache.set(key, this.#engine.previewOperation(plan, date, crewId));
+    return clone(this.#previewCache.get(key));
+  }
+  scheduleBatch(input) { return this.#run(() => this.#engine.scheduleBatch({ ...input, requestId: input.requestId || this.#request() })); }
   capacity(date, excludeId = null) { return this.#engine.getFarmCapacity(date, excludeId); }
   scheduleTask(input) { return this.#run(() => this.#engine.scheduleTask({ ...input, requestId: input.requestId || this.#request() })); }
   cancelTask(id) { return this.#run(() => this.#engine.cancelTask(id)); }

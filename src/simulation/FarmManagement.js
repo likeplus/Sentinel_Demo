@@ -202,7 +202,7 @@ export function executeFarmDay(s, packs, random) {
     // A combined repair restores equipment before its attached irrigation.
     if (task.actions.includes('repair')) for (const effect of task.maintenanceEffects) resource(s, effect.resourceId).availability[s.currentDate] = effect.factor;
     const unavailable = task.assignedResourceIds.filter(id => { const r = resource(s, id); return isCapacityResource(r) ? (usage.get(id) || 0) + task.plannedDurationDays > availableCapacity(r, s.currentDate) : r.status !== 'available' || (task.resourceQuantities[id] || 0) > r.quantity; });
-    if (unavailable.length) { task.executionStatus = 'blocked'; task.deviations.push({ type: 'resource_unavailable', date: s.currentDate, resourceIds: unavailable }); continue; }
+    if (unavailable.length) { task.executionStatus = 'blocked'; task.deviations.push({ type: 'resource_unavailable', date: s.currentDate, resourceIds: unavailable }); m.lastResults.push({ taskId: task.id, unitId: task.unitId, status: 'blocked', labor: 0, results: [{ unitId: task.unitId, message: 'Resource Conflict: assigned crew, equipment or inventory unavailable.' }] }); continue; }
     task.actualDurationDays = task.plannedDurationDays; task.actualResourceIds = [...task.assignedResourceIds];
     task.cost = task.expectedCost || 0;
     task.actualOutput = { water: 0, waterConsumed: 0 };
@@ -340,7 +340,7 @@ export function farmManagementView(s) {
       growthStage: latestFor(s, unit.id, 'stage')?.value || null, scheduledTasks: pending(s).filter(t => t.productionUnitIds.includes(unit.id)) };
   });
   return clone({ onboarded: m.onboarded || false, phase: m.phase, currentDate: s.currentDate, endDate: addDays(m.endDate, -1), ended: s.ended, units,
-    sensors: m.sensors, tasks: tasks(s), observations: observations.filter(o => o.domain), decisions: m.decisions,
+    dailyLabor: m.dailyLabor, sensors: m.sensors, tasks: tasks(s), observations: observations.filter(o => o.domain), decisions: m.decisions,
     history: m.history, trend: m.trend, weather: m.weather, expectedImpacts: m.expectedImpacts, lastResults: m.lastResults,
     resources: { labor: farmCapacity(s, s.currentDate), attention: m.attentionRemaining, dailyAttention: m.dailyAttention,
       attentionReserved: pending(s).filter(t => t.plannedStart === s.currentDate).reduce((sum, t) => sum + t.attention, 0), water: resource(s, 'water').quantity },
@@ -353,7 +353,7 @@ export function openFarmDecision(s, unitId, maker) {
   if (!['Manager', 'Team', 'AI Assistant'].includes(maker)) return fail('maker', 'Unknown decision maker.');
   const unit = farmManagementView(s).units.find(u => u.id === unitId);
   if (!unit) return fail('unit', 'Choose a Production Unit.');
-  const complex = unit.water.value >= 70 || (unit.equipment.status === 'Fault' && unit.water.value >= 45) || unit.water.confidence < 60 || unit.cropStatus === 'Warning';
+  const complex = needsComplexDecision(unit);
   if (!complex) return fail('routine', 'Routine decisions can be scheduled directly without Attention.');
   const existing = m.decisions.find(d => d.unitId === unitId && d.date === s.currentDate && d.status === 'proposed' && d.maker === maker);
   if (existing) return { accepted: true, decision: clone(existing) };
@@ -395,3 +395,5 @@ export function resolveFarmDecision(s, id, accept, reason = '', managerActions =
   if (!actions.length) decision.result = [{ message: 'No new action: review next morning.' }];
   return { accepted: true };
 }
+
+export const needsComplexDecision = unit => unit.water.value >= 70 || (unit.equipment.status === 'Fault' && unit.water.value >= 45) || unit.water.confidence < 60 || unit.cropStatus === 'Warning';
