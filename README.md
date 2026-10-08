@@ -106,3 +106,9 @@ npm run dev
 ```
 
 打开终端 Local 地址加 `/game`。也可在 GitHub 切到该分支，通过 Code → Download ZIP 获取源码（不是截图压缩包）。
+
+## 在线试玩：GitHub Pages
+
+配置 Pages 自动发布后，无需下载源码，可直接进入[农场游戏](https://likeplus.github.io/Sentinel_Demo/#/game)。main 更新后自动测试、构建和发布；PR 只验证构建。
+
+首次启用需要仓库管理员在 Settings → Pages 将 Source 设为 GitHub Actions，再确认 [发布工作流](https://github.com/likeplus/Sentinel_Demo/actions/workflows/pages.yml) 成功。完整配置、验证与排障见 [在线试玩方案](docs/08_Online_Play_GitHub_Pages.md)。

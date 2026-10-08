@@ -6,6 +6,7 @@ import PageClock from './PageClock';
 import Icon from './Icon';
 import SubtitleOverlay from './SubtitleOverlay';
 import IterativeReasoningOverlay from './IterativeReasoningOverlay';
+import { publicAsset } from '../publicAsset.js';
 import { pick, formatLocaleTime } from '../i18n/locale.js';
 
 const navItems = [
@@ -61,7 +62,7 @@ export default function Layout() {
         <div className="app-shell">
             <aside className="sidebar">
                 <div className="sidebar-brand">
-                    <img src="/sentinel_logo.png" alt="Sentinel" className="sidebar-logo" style={{ width: 52, height: 52, filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.3))' }} />
+                    <img src={publicAsset('sentinel_logo.png')} alt="Sentinel" className="sidebar-logo" style={{ width: 52, height: 52, filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.3))' }} />
                     <div>
                         <div className="sidebar-title" style={{ fontSize: '1.4rem', letterSpacing: 4, fontWeight: 800 }}>SENTINEL</div>
                         <div className="sidebar-subtitle" style={{ letterSpacing: 2, fontSize: '0.6rem', color: '#64748b' }}>{t('Decision OS', '决策操作系统')}</div>

@@ -14,7 +14,7 @@
         "severity": 2,
         "line": 365,
         "column": 101,
-        "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n  363 |                 <div className=\"grade-uplift-box\">\n  364 |                     <div style={{ fontSize: '0.6rem', color: '#86efac', textTransform: 'uppercase', fontWeight: 700 }}>{t('Grade A Quality Protected', 'A级品质保护率')}</div>\n> 365 |                     <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f0fdf4' }}>{98.4 + (Math.random() * 1.5).toFixed(1)}%</div>\n      |                                                                                                     ^^^^^^^^^^^^^ Cannot call impure function\n  366 |                 </div>\n  367 |             </div>\n  368 |         </div>"
+        "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n  363 |                 <div className=\"grade-uplift-box\">\n  364 |                     <div style={{ fontSize: '0.6rem', color: '#86efac', textTransform: 'uppercase', fontWeight: 700 }}>{t('Grade A Quality Protected', 'A\u7ea7\u54c1\u8d28\u4fdd\u62a4\u7387')}</div>\n> 365 |                     <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f0fdf4' }}>{98.4 + (Math.random() * 1.5).toFixed(1)}%</div>\n      |                                                                                                     ^^^^^^^^^^^^^ Cannot call impure function\n  366 |                 </div>\n  367 |             </div>\n  368 |         </div>"
       }
     ]
   },
@@ -59,7 +59,7 @@
         "severity": 2,
         "line": 21,
         "column": 13,
-        "message": "Error: Cannot access variable before it is declared\n\n`runVideoSequence` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  19 |         if (query.get('automate') === 'true') {\n  20 |             const startRound = parseInt(query.get('round')) || 1;\n> 21 |             runVideoSequence(startRound);\n     |             ^^^^^^^^^^^^^^^^ `runVideoSequence` accessed before it is declared\n  22 |         }\n  23 |     }, [location.search]);\n  24 |\n\n   23 |     }, [location.search]);\n   24 |\n>  25 |     const runVideoSequence = async (startRound = 1) => {\n      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  26 |         console.log(`Starting Sentinel Automation Sequence (Round ${startRound})...`);\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  27 |\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 118 |         console.log(\"Automation Sequence Complete.\");\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 119 |     };\n      | ^^^^^^^ `runVideoSequence` is declared here\n  120 |\n  121 |     return null; // Side effect component\n  122 | }"
+        "message": "Error: Cannot access variable before it is declared\n\n`runVideoSequence` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  19 |         if (query.get('automate') === 'true') {\n  20 |             const startRound = parseInt(query.get('round')) || 1;\n> 21 |             runVideoSequence(startRound);\n     |             ^^^^^^^^^^^^^^^^ `runVideoSequence` accessed before it is declared\n  22 |         }\n  23 |     }, [location.search]);\n  24 |\n\n   23 |     }, [location.search]);\n   24 |\n>  25 |     const runVideoSequence = async (startRound = 1) => {\n      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  26 |         console.log(`Starting Sentinel Automation Sequence (Round ${startRound})...`);\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n>  27 |\n      \u2026\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 118 |         console.log(\"Automation Sequence Complete.\");\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 119 |     };\n      | ^^^^^^^ `runVideoSequence` is declared here\n  120 |\n  121 |     return null; // Side effect component\n  122 | }"
       },
       {
         "ruleId": "react-hooks/exhaustive-deps",
@@ -246,16 +246,16 @@
       {
         "ruleId": "react-hooks/exhaustive-deps",
         "severity": 1,
-        "line": 90,
+        "line": 91,
         "column": 11,
-        "message": "The 'fleet' logical expression could make the dependencies of useMemo Hook (at line 112) change on every render. To fix this, wrap the initialization of 'fleet' in its own useMemo() Hook."
+        "message": "The 'fleet' logical expression could make the dependencies of useMemo Hook (at line 113) change on every render. To fix this, wrap the initialization of 'fleet' in its own useMemo() Hook."
       },
       {
         "ruleId": "react-hooks/exhaustive-deps",
         "severity": 1,
-        "line": 92,
+        "line": 93,
         "column": 11,
-        "message": "The 'unitSeries' logical expression could make the dependencies of useMemo Hook (at line 120) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'unitSeries' in its own useMemo() Hook."
+        "message": "The 'unitSeries' logical expression could make the dependencies of useMemo Hook (at line 121) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'unitSeries' in its own useMemo() Hook."
       }
     ]
   }

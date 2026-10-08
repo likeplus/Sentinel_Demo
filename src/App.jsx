@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import SensorTelemetry from './pages/SensorTelemetry';
@@ -11,11 +11,14 @@ import ScenarioControl from './pages/ScenarioControl';
 import Admin from './pages/Admin';
 import { lazy, Suspense } from 'react';
 
+// Pages serves static files without SPA rewrites. Other hosts keep clean URLs.
+const AppRouter = import.meta.env.VITE_ROUTER_MODE === 'hash' ? HashRouter : BrowserRouter;
+
 const GameApp = lazy(() => import('./game/GameApp.jsx'));
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <AppRouter>
       <Routes>
         <Route path="game" element={<Suspense fallback={<div style={{ padding: 32 }}>正在打开农场试玩…</div>}><GameApp /></Suspense>} />
         <Route element={<Layout />}>
@@ -30,6 +33,6 @@ export default function App() {
           <Route path="admin" element={<Admin />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </AppRouter>
   );
 }

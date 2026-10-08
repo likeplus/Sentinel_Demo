@@ -15,7 +15,9 @@
     "lint:baseline": "node scripts/check-lint-baseline.cjs",
     "test:game": "node scripts/smoke-feedback.cjs",
     "test:acceptance": "node scripts/run-feedback-acceptance.cjs",
-    "test:game:locale": "node scripts/smoke-game-locale.cjs"
+    "test:game:locale": "node scripts/smoke-game-locale.cjs",
+    "build:pages": "node scripts/build-pages.mjs",
+    "test:pages": "node scripts/smoke-pages.cjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
