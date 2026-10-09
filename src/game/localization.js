@@ -31,7 +31,7 @@ const zhMatcher = new RegExp([...zhWords.keys()].sort((a, b) => b.length - a.len
   .map(word => `(?<![a-z0-9_-])${escape(word)}(?![a-z0-9_-])`).join('|'), 'gi');
 for (const entry of entries.values()) entry.zh = entry.zh.replace(zhMatcher, match => zhWords.get(match.toLowerCase()));
 
-const phrases = [...entries.keys()].sort((a, b) => b.length - a.length).map(key => key.charCodeAt(0) < 128
+const phrases = [...entries.keys()].filter(key => !['m', '/'].includes(key)).sort((a, b) => b.length - a.length).map(key => key.charCodeAt(0) < 128
   ? `(?<![a-z0-9_-])${escape(key)}(?![a-z0-9_-])` : escape(key));
 const matcher = new RegExp(phrases.join('|'), 'gi');
 
@@ -46,10 +46,12 @@ const templates = [
   [/^Water stress (.+?), confidence (.+?)%, freshness (.+?)d; equipment (.+?); stage (.+?); sensors (.+?); weather (.+?)°C, rain (.+?)mm, ET (.+?)mm; Labor remaining (.+?); (.+?) scheduled actions\. (.+)$/, (m, t) => `水分胁迫 ${t(m[1])}，可信度 ${m[2]}%，新鲜度 ${m[3]} 天；设备 ${t(m[4])}；阶段 ${t(m[5])}；传感器 ${m[6]} 个；天气 ${m[7]}°C，降雨 ${m[8]} 毫米，蒸散量 ${m[9]} 毫米；剩余劳动力 ${m[10]}；已有作业 ${m[11]} 项。${t(m[12])}`],
 ];
 
-export function localizeGameText(locale, value) {
+function translateText(locale, value) {
   if (Array.isArray(value)) return value.map(item => localizeGameText(locale, item));
   if (typeof value !== 'string' || !value) return value;
   const t = item => localizeGameText(locale, item);
+  const age = value.match(/^(\d+)(?:天前| days? ago)$/);
+  if (age) return locale === 'zh' ? `${age[1]}天前` : `${age[1]} ${age[1] === '1' ? 'day' : 'days'} ago`;
   const exact = entries.get(value.trim().toLowerCase());
   if (exact) return value.replace(value.trim(), exact[locale === 'zh' ? 'zh' : 'en']);
   const planDescription = value.match(/^使用 (.+) m³ 水和 (.+) 天班组\/设备容量；实际送水量受作业效率影响。$/);
@@ -70,4 +72,14 @@ export function localizeGameText(locale, value) {
   let result = value.replace(matcher, match => entries.get(match.toLowerCase())[locale === 'zh' ? 'zh' : 'en']);
   if (locale === 'zh') result = result.replace(/\b(\d+)d(\+?)/g, '$1天$2').replace(/\bha\b/g, '公顷');
   return result;
+}
+
+// Unit typography is a display concern; never rewrite stored simulation values.
+export function localizeGameText(locale, value) {
+  if (Array.isArray(value)) return value.map(item => localizeGameText(locale, item));
+  if (typeof value !== 'string') return value;
+  if (value.trim() === '/') return value;
+  const result = translateText(locale, value);
+  return locale === 'zh' ? result.replace(/(?<![a-z])m(?:³|3)(?![a-z0-9])/gi, '立方米').replace(/\bmm\b/g, '毫米')
+    : result.replaceAll('立方米', 'm³').replaceAll('公顷', 'ha').replaceAll('毫米', 'mm');
 }

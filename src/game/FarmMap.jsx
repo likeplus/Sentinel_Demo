@@ -1,4 +1,5 @@
 import { useGameLocale } from "./GameLocaleContext.js";import { waterLevel, statusColor } from './feedbackStatus.js';
+import { informationAge } from './informationAge.js';
 import { useId, useState } from 'react';
 import { geometryBounds, geometryCenter, groupMapClusters, polygonPoints } from './mapGeometry.js';
 import './farm-map.css';
@@ -26,7 +27,7 @@ function clusterLabel(id) {
   return id === 'unassigned' ? '未分区' : `分区 ${id.replace(/^CL-/, '')}`;
 }
 
-function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, aggregate }) {const { t } = useGameLocale();
+function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, aggregate, selectedIds = [], onToggle }) {const { t } = useGameLocale();
   const points = polygonPoints(unit);
   if (!points.length) return null;
   const bounds = geometryBounds([unit]);
@@ -40,7 +41,7 @@ function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, agg
   const detailSize = Math.max(4, Math.min(7.6, scale * 0.091));
   const shapeId = `${prefix}-${unit.id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const variety = (unit.varietyName || unit.varietyId || '品种未登记').replace(/\s*\(training\)/, '');
-  const stateLabel = overlay === 'tasks' ? `${count} 项待办` : unit.water?.label || '尚无水分观测';
+  const stateLabel = overlay === 'freshness' ? `${t('水分信息')}: ${t(informationAge(unit.water.freshness, Boolean(unit.water.observedAt)))}` : overlay === 'tasks' ? `${count} 项待办` : unit.water?.label || '尚无水分观测';
   const stageLabel = unit.stage?.label || '阶段待确认';
   const accessibleLabel = `${unit.id}，${variety}，${stageLabel}，${stateLabel}${status === 'stale' ? '，观测已过期' : ''}`;
   return (
@@ -50,7 +51,7 @@ function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, agg
     onClick={() => onSelect?.(unit.id)} onKeyDown={(event) => {
       if (event.key === 'Enter' || event.key === ' ') {event.preventDefault();onSelect?.(unit.id);}
     }}>
-      <title>{t(accessibleLabel)}</title>
+      {onToggle && !aggregate && <g role="checkbox" aria-label={`${t('选择')} ${unit.id}`} aria-checked={selectedIds.includes(unit.id)} tabIndex={0} data-testid={`map-select-${unit.id}`} onClick={e => {e.stopPropagation();onToggle(unit.id);}} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault();e.stopPropagation();onToggle(unit.id);}}}><rect x={bounds.x + 5} y={bounds.y + 5} width={14} height={14} rx={3} fill={selectedIds.includes(unit.id) ? '#34785a' : 'white'} stroke="#34785a" />{selectedIds.includes(unit.id) && <text x={bounds.x + 7} y={bounds.y + 17} fontSize={12} fill="white">✓</text>}</g>}<title>{t(accessibleLabel)}</title>
       <defs><clipPath id={shapeId}><polygon points={points.map((point) => point.join(',')).join(' ')} /></clipPath></defs>
       <polygon className="farm-map__field" points={points.map((point) => point.join(',')).join(' ')} />
       <g clipPath={`url(#${shapeId})`} aria-hidden="true">
@@ -74,14 +75,14 @@ function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, agg
         <circle className="farm-map__task-badge" cx={bounds.x + scale * 0.115} cy={bounds.y + scale * 0.115} r={scale * 0.09} />
         <text className="farm-map__task-count" x={bounds.x + scale * 0.115} y={bounds.y + scale * 0.15} fontSize={detailSize}>{t(count)}</text>
       </g>)}
-      {t(layers.map((layer, i) => {const level = layer === 'water' ? waterLevel(unit.water.value === null ? null : unit.water.value * 100) : layer === 'crop' ? statusColor(unit.cropStatus) : layer === 'equipment' ? statusColor(unit.equipment?.status) : unit.water.freshness > 90 ? 'unknown' : unit.water.freshness >= 5 ? 'severe' : unit.water.freshness >= 3 ? 'significant' : unit.water.freshness > 0 ? 'mild' : 'normal';return <g key={layer} data-layer-status={layer}><circle cx={bounds.x + scale * .13 + i * scale * .21} cy={bounds.y + bounds.height - scale * .22} r={scale * .045} fill={{ normal: '#3d8f65', mild: '#d0ad2a', significant: '#e78235', severe: '#ce4f48', unknown: '#a8b1ab' }[level]} /><text x={bounds.x + scale * .13 + i * scale * .21} y={bounds.y + bounds.height - scale * .09} fontSize={detailSize * .7}>{t({ water: 'Water', crop: 'Crop', freshness: 'Fresh', equipment: 'Equip' }[layer])}</text></g>;}))}<polygon className="farm-map__selection" points={points.map((point) => point.join(',')).join(' ')} aria-hidden="true" />
+      {t(layers.map((layer, i) => {const level = layer === 'water' ? waterLevel(unit.water.value === null ? null : unit.water.value * 100) : layer === 'crop' ? statusColor(unit.cropStatus) : layer === 'equipment' ? statusColor(unit.equipment?.status) : unit.water.freshness > 90 ? 'unknown' : unit.water.freshness >= 5 ? 'severe' : unit.water.freshness >= 3 ? 'significant' : unit.water.freshness > 0 ? 'mild' : 'normal';return <g key={layer} data-layer-status={layer}><title>{layer === 'freshness' ? `${t('水分信息更新')}: ${t(informationAge(unit.water.freshness, Boolean(unit.water.observedAt)))}` : t(layer)}</title><circle cx={bounds.x + scale * .13 + i * scale * .21} cy={bounds.y + bounds.height - scale * .22} r={scale * .045} fill={{ normal: '#3d8f65', mild: '#d0ad2a', significant: '#e78235', severe: '#ce4f48', unknown: '#a8b1ab' }[level]} /><text x={bounds.x + scale * .13 + i * scale * .21} y={bounds.y + bounds.height - scale * .09} fontSize={detailSize * .7}>{t({ water: 'Water', crop: 'Crop', freshness: '信息', equipment: 'Equip' }[layer])}</text></g>;}))}<polygon className="farm-map__selection" points={points.map((point) => point.join(',')).join(' ')} aria-hidden="true" />
     </g>);
 
 }
 
 /** Only accepts the public player projection, never engine state or checkpoint data. */
 export default function FarmMap({ units = [], selectedUnitId, onSelect, onSelectUnit, overlay, layer, layers = [],
-  clusterFilter = 'all', varietyFilter = 'all' }) {const { t } = useGameLocale();
+  clusterFilter = 'all', varietyFilter = 'all', selectedIds = [], onToggle }) {const { t } = useGameLocale();
   const prefix = `farm-map-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [zoom, setZoom] = useState(1);
   const [focusedCluster, setFocusedCluster] = useState(null);
@@ -134,7 +135,7 @@ export default function FarmMap({ units = [], selectedUnitId, onSelect, onSelect
             y={cluster.bounds.y + cluster.bounds.height / 2} transform={`rotate(-90 ${cluster.bounds.x - 7} ${cluster.bounds.y + cluster.bounds.height / 2})`}>{t(clusterLabel(cluster.id))}</text>)}
           </g>))}
           <g className={aggregate ? 'farm-map__units farm-map__units--aggregate' : 'farm-map__units'} aria-hidden={aggregate}>
-            {t(visibleUnits.map((unit) => <UnitShape key={unit.id} unit={unit} prefix={prefix} selected={unit.id === selectedUnitId}
+            {t(visibleUnits.map((unit) => <UnitShape selectedIds={selectedIds} onToggle={onToggle} key={unit.id} unit={unit} prefix={prefix} selected={unit.id === selectedUnitId}
             overlay={activeOverlay} layers={layers} onSelect={select} aggregate={aggregate} />))}
           </g>
           {t(aggregate && clusters.map((cluster) => {

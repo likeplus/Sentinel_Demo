@@ -17,10 +17,20 @@ const previews = 'docs/validation/screenshots/latest';
     await page.goto('http://127.0.0.1:5193/game', { waitUntil: 'networkidle0' });
     const click = async id => { const s = `[data-testid="${id}"]`; await page.waitForSelector(s); await page.$eval(s, e => e.scrollIntoView({ block: 'center' })); await page.click(s); };
     const body = () => page.$eval('[data-testid="game-root"]', e => e.innerText);
-    const checkpoint = () => page.evaluate(() => JSON.parse(localStorage.getItem('sentinel:farm-game:save:v1')).checkpoint);
+    const { decodeSave } = await import('../src/game/persistence.js');
+    const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
     assert.equal(await page.$eval('[data-testid="game-root"]', e => e.dataset.locale), 'zh');
     const initial = await checkpoint();
-    for (const tab of ['guide', 'knowledge']) { await click(`tab-${tab}`); assert.deepEqual(await checkpoint(), initial, 'reading guides does not change time, resources or game state'); }
+    await click('tab-map');
+    const age = await page.$eval('[data-testid="freshness-PU-01"]', e => e.textContent);
+    assert.match(age, /水分信息更新: 当天/); assert.match(age, /作物与设备信息更新: 当天/);
+    assert.match(await page.$eval('[data-testid="freshness-PU-05"]', e => e.textContent), /作物与设备信息更新: 5天前/);
+    assert.doesNotMatch(age, /0d|作物\s*\d+天|5天\+/);
+    assert.match(await page.$eval('[data-testid="freshness-PU-04"]', e => e.textContent), /暂无信息/);
+    await click('table-unit-PU-05'); await page.select('[data-testid="cluster-filter"]', 'CL-1');
+    assert.notEqual(await page.$eval('[data-testid="selected-unit"]', e => e.dataset.unitId), 'PU-05', 'details remain inside the visible filter');
+    await page.select('[data-testid="cluster-filter"]', 'all');
+    for (const tab of ['guide', 'knowledge']) { await click(`tab-${tab}`); if (tab === 'guide') { await page.evaluate(() => document.querySelectorAll('details').forEach(d => {d.open = true;})); assert.match(await body(), /信息新鲜度：这些信息是什么时候获得的/); assert.match(await body(), /例如昨天巡查、今天传感器更新/); } assert.deepEqual(await checkpoint(), initial, 'reading guides does not change time, resources or game state'); }
     await click('locale-en'); assert.deepEqual(await checkpoint(), initial, 'switching language does not mutate game state');
     for (const locale of ['en', 'zh']) {
       await click(`locale-${locale}`); audit[locale] = {};
@@ -44,10 +54,10 @@ const previews = 'docs/validation/screenshots/latest';
     audit.zh.results = await body(); await click('locale-en'); audit.en.results = await body();
     assert.deepEqual(audit.en.results.split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], 'English execution and AI history remain localized');
     for (const tab of ['map', 'operations', 'decisions', 'management']) { await click(`tab-${tab}`); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; })); const content = await body(); assert.deepEqual(content.split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], `English ${tab} localizes execution reports and rationale`); }
-    await click('advance-day'); await click('advance-day');
-    for (let i = 0; i < 2; i++) { await click('advance-day'); await click('advance-day'); await click('advance-day'); }
+    await click('advance-day');
+    for (let i = 0; i < 2; i++) { await click('advance-day'); await click('advance-day'); }
     await click('tab-decisions'); await click('ai-delegate-water-stress-pu03');
-    await click('advance-day'); await click('advance-day'); await click('advance-day');
+    await click('advance-day'); await click('advance-day');
     await click('tab-decisions'); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
     assert.deepEqual((await body()).split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], 'English authored case and AI proposal');
     await click('locale-zh');

@@ -6,4 +6,4 @@ const run = script => new Promise((resolve, reject) => {
   child.once('error', reject); child.once('exit', code => code === 0 ? resolve() : reject(new Error(`${script}: exit ${code}`)));
 });
 const ready = new Promise((resolve, reject) => { server.stdout.on('data', data => { if (data.toString().includes('Local:')) resolve(); }); server.once('error', reject); server.once('exit', code => reject(new Error(`Server exited: ${code}`))); });
-(async () => { try { await ready; await run('scripts/smoke-feedback.cjs'); await run('scripts/smoke-routes.cjs'); } finally { server.kill(); } })().catch(e => { console.error(e); process.exitCode = 1; });
+(async () => { try { await ready; await run('scripts/smoke-feedback.cjs'); await run('scripts/smoke-manager-flow.cjs'); await run('scripts/smoke-routes.cjs'); } finally { server.kill(); } })().catch(e => { console.error(e); process.exitCode = 1; });

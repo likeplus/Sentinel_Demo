@@ -14,14 +14,15 @@ const key = 'sentinel:farm-game:save:v1';
   const click = async id => { await p.waitForSelector(sel(id)); await p.$eval(sel(id), e => e.scrollIntoView({ block: 'center' })); await p.click(sel(id)); };
   const fill = async (id, value) => p.$eval(sel(id), (el, value) => { const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value); el.dispatchEvent(new Event('input', { bubbles: true })); }, value);
   const save = () => p.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
-  const cp = async () => (await save()).checkpoint;
+  const { decodeSave } = await import('../src/game/persistence.js');
+  const cp = async () => decodeSave(JSON.stringify(await save())).checkpoint;
   const commit = async id => { const previous = await p.evaluate(key => localStorage.getItem(key), key); await click(id); await p.waitForFunction((key, old) => localStorage.getItem(key) !== old, {}, key, previous); };
   const phase = async () => { const previous = (await cp()).state.management.phase; await commit('advance-day'); assert.notEqual((await cp()).state.management.phase, previous); };
-  const day = async () => { const before = (await cp()).state.currentDayIndex; await phase(); await phase(); await phase(); assert.equal((await cp()).state.currentDayIndex, before + 1); };
+  const day = async () => { const before = (await cp()).state.currentDayIndex; await phase(); await phase(); assert.equal((await cp()).state.currentDayIndex, before + 1); };
   const shot = async name => { await p.screenshot({ path: `${out}/${name}.png`, fullPage: true }); };
   try {
     await p.setViewport({ width: 1440, height: 960 }); await p.goto(`${url}/game`, { waitUntil: 'networkidle0' });
-    await p.waitForSelector(sel('farm-status-table')); assert.equal((await cp()).state.management.phase, 'morning');
+    await click('tab-map'); await p.waitForSelector(sel('farm-status-table')); assert.equal((await cp()).state.management.phase, 'morning');
     assert.equal(await p.$$(sel('farm-status-table') + ' tbody tr').then(x => x.length), 12);
     await shot('01-table-onboarding'); await commit('onboarding-dismiss');
     await p.setViewport({ width: 1920, height: 1600 }); await shot('00-full-overview'); await p.setViewport({ width: 1440, height: 960 });
@@ -35,7 +36,7 @@ const key = 'sentinel:farm-game:save:v1';
     await shot('02-map-layers'); results.push('Original geometry, filters, zoom, keyboard selection, 4 simultaneous layers');
     await click('tab-operations'); await p.select(sel('task-unit'), 'PU-01'); await click('attach-manual_watering'); await click('attach-spraying'); await commit('task-confirm');
     const first = (await cp()).state.scheduledOperations[0]; assert.equal(first.labor, 4); assert.equal((await cp()).state.attention.remaining, 3);
-    await p.select(sel('task-action'), 'spraying'); const beforeDuplicate = await cp(); await click('task-confirm'); await p.waitForSelector('.fb-duplicate'); assert.deepEqual(await cp(), beforeDuplicate); assert.match(await p.$eval(sel('game-error'), e => e.textContent), /already scheduled|已安排这项作业/);
+    await p.select(sel('task-action'), 'spraying'); const beforeDuplicate = await cp(); await click('task-confirm'); await p.waitForSelector('.fb-duplicate'); assert.deepEqual(await cp(), beforeDuplicate); assert.match(await p.$eval('.fb-duplicate', e => e.parentElement.textContent), /already scheduled|已安排这项作业/);
     await p.select(sel('task-action'), 'repair'); await commit('task-confirm'); const repair = (await cp()).state.scheduledOperations.at(-1); await commit(`cancel-${repair.id}`); assert.equal((await cp()).state.scheduledOperations.at(-1).executionStatus, 'cancelled');
     await p.select(sel('task-action'), 'sensor_relocation'); await p.select(sel('task-unit'), 'PU-04'); await commit('task-confirm');
     await shot('03-operations-planner'); const beforeReload = await cp(); await p.reload({ waitUntil: 'networkidle0' }); assert.deepEqual(await cp(), beforeReload);
@@ -44,7 +45,7 @@ const key = 'sentinel:farm-game:save:v1';
     assert.equal(state.scheduledOperations[0].executionStatus, 'completed'); assert.ok(state.management.expectedImpacts[0].to < state.management.expectedImpacts[0].from);
     assert.equal(state.management.sensors.find(s => !s.fixed).location, 'PU-04');
     await shot('04-execution-results'); await click('tab-operations'); assert.equal(await p.$eval(sel('task-confirm'), e => e.matches(':disabled')), true);
-    await phase(); await phase(); assert.equal((await cp()).state.management.units, undefined); // state uses estimates, public units are projected.
+    await phase(); assert.equal((await cp()).state.management.units, undefined); // state uses estimates, public units are projected.
     assert.ok((await cp()).state.management.estimates['PU-04'].value !== null);
     results.push('Same-day execution, Water Stress decrease, phase scheduling lock, next-morning sensor freshness');
     await day(); await day(); // March 4, original authored decision opens.
@@ -73,6 +74,6 @@ const key = 'sentinel:farm-game:save:v1';
     await click('restart-open'); await commit('restart-confirm'); assert.equal((await cp()).state.currentDayIndex, 0); assert.equal((await cp()).state.management.phase, 'morning');
     await p.setViewport({ width: 1440, height: 960 }); await click('tab-map'); await shot('07-restarted');
     assert.deepEqual(errors, []); results.push('Mobile layout, restart, no browser runtime exceptions');
-    await fs.writeFile(`${out}/acceptance.json`, JSON.stringify({ results, errors, finalSaveBytes: JSON.stringify(final).length }, null, 2)); console.log(JSON.stringify({ results, errors, artifacts: out }, null, 2));
+    await fs.writeFile(`${out}/acceptance.json`, JSON.stringify({ results, errors, storedSaveChars: JSON.stringify(await save()).length, decodedCheckpointChars: JSON.stringify(final).length }, null, 2)); console.log(JSON.stringify({ results, errors, artifacts: out }, null, 2));
   } catch (e) { await shot('failure'); throw e; } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

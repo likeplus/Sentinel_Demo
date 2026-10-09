@@ -6,7 +6,7 @@ import { RandomEngine } from './RandomEngine.js';
 import { advanceWorld } from './WorldEngine.js';
 import { availableObservations, sampleObservations, updateBeliefs } from './ObservationEngine.js';
 import { rollEvents, validateEventRules } from './EventEngine.js';
-import { initializeManagement, farmManagementView, farmCapacity, scheduleFarmTask, cancelFarmTask,
+import { FARM_ACTIONS, initializeManagement, farmManagementView, farmCapacity, scheduleFarmTask, cancelFarmTask,
   executeFarmDay, advanceFarmMorning, openFarmDecision, resolveFarmDecision } from './FarmManagement.js';
 
 export const DAILY_PHASES = ['world', 'production', 'resources', 'events', 'observations', 'beliefs',
@@ -649,6 +649,53 @@ export class SimulationEngine {
     const result = scheduleFarmTask(this.#state, clone(input));
     if (!result.accepted) return { ...result, conflicts: result.conflicts || [] };
     return this.#accepted(request, { ...result, operation: result.task, conflicts: [] });
+  }
+  /** Preview and commit use the same allocator. The original state is untouched on any failure. */
+  #prepareBatch(input) {
+    const unitIds = input.unitIds;
+    if (!Array.isArray(unitIds) || !unitIds.length || new Set(unitIds).size !== unitIds.length)
+      return { accepted: false, conflicts: [], message: 'Choose distinct Production Units.' };
+    if (unitIds.length > 1 && input.actions?.includes('sensor_relocation'))
+      return { accepted: false, conflicts: [], message: 'Move one Mobile Sensor to one destination at a time.' };
+    const perUnit = (input.actions || []).reduce((sum, action) => ({ labor: sum.labor + (FARM_ACTIONS[action]?.labor || 0), attention: sum.attention + (FARM_ACTIONS[action]?.attention || 0), water: sum.water + (FARM_ACTIONS[action]?.water || 0) }), { labor: 0, attention: 0, water: 0 });
+    const duration = perUnit.labor / this.#state.management.dailyLabor;
+    const ids = [...(perUnit.labor ? [input.crewId || 'crew-a'] : []), ...(input.actions?.includes('irrigation') ? ['irrigation-rig'] : [])];
+    const quote = { labor: perUnit.labor * unitIds.length, attention: perUnit.attention * unitIds.length, water: perUnit.water * unitIds.length,
+      staffDays: duration * unitIds.length, cost: ids.reduce((sum, id) => sum + (this.#state.farmState.resources.find(r => r.id === id)?.operatingCost || 0) * duration * unitIds.length, 0), capacity: farmCapacity(this.#state, input.date) };
+    const draft = clone(this.#state), tasks = [], errors = [], taskIds = [];
+    for (const unitId of unitIds) {
+      const result = scheduleFarmTask(draft, { ...clone(input), unitIds: undefined, productionUnitIds: undefined, unitId });
+      if (result.accepted) tasks.push(result.task);
+      else { errors.push({ unitId, ...result }); taskIds.push(...(result.taskIds || [])); }
+    }
+    if (errors.length) return { accepted: false, conflicts: errors.flatMap(e => e.conflicts || []),
+      quote, taskIds: [...new Set(taskIds)], errors, message: errors.map(e => `${e.unitId}: ${e.message}`).join('; ') };
+    return { accepted: true, tasks, draft, quote, conflicts: [] };
+  }
+  previewOperation(plan, date, crewId = '') {
+    try {
+      const normalized = { ...this.#resourcePlan(clone(plan), crewId ? { crewId } : {}), id: this.#operationId().id, plannedStart: date };
+      const quote = { labor: normalized.plannedDurationDays * this.#state.management.dailyLabor,
+        water: normalized.resourceQuantities?.water || 0,
+        staffDays: normalized.plannedDurationDays, unitIds: normalized.productionUnitIds,
+        cost: normalized.assignedResourceIds.reduce((sum, id) => { const r = this.#state.farmState.resources.find(r => r.id === id); return sum + (r && isCapacityResource(r) ? r.operatingCost * normalized.plannedDurationDays : 0); }, 0) };
+      const prepared = this.#prepareOperation(normalized);
+      return clone({ ...prepared, quote, capacity: farmCapacity(this.#state, date) });
+    } catch (error) { return { accepted: false, conflicts: [], message: error.message }; }
+  }
+  previewTasks(input) {
+    try {
+      const { draft: _draft, ...result } = this.#prepareBatch(input);
+      return clone(result);
+    } catch (error) { return { accepted: false, conflicts: [], message: error.message }; }
+  }
+  scheduleBatch(input) {
+    const request = this.#request(input.requestId, 'batch', input);
+    if (request?.result) return request.result;
+    const result = this.#prepareBatch(input);
+    if (!result.accepted) return result;
+    this.#state = result.draft;
+    return this.#accepted(request, { accepted: true, tasks: result.tasks, conflicts: [] });
   }
   cancelTask(id) {
     const result = cancelFarmTask(this.#state, id);
