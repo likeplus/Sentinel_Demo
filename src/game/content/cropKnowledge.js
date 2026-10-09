@@ -1,3 +1,4 @@
+import { BLUEBERRY_STAGE_CARDS } from './blueberryStages.js';
 const text = (zh, en) => ({ zh, en });
 
 /** Registry key matches CropPack.id. New crops can provide cards and stages independently. */
@@ -13,11 +14,10 @@ export const CROP_KNOWLEDGE = {
       ] },
       { id: 'cycle', title: text('生长周期', 'Growth cycle'), intro: text('蓝莓有多年生的生命周期，也有每年的生长与结果周期。实际时间因品种、产区和设施而异，以下按阶段理解，而非固定月份。', 'Blueberries have a perennial lifecycle and an annual growth-and-fruiting cycle. Timing varies by cultivar, location and protected cultivation; these are stages rather than fixed months.'), stages: [
         { id: 'dormancy', title: text('休眠与萌芽准备', 'Dormancy and bud preparation'), body: text('了解品种冷量需求、花芽与枝条基础，检查越冬、修剪和设备准备。多年生植株的树势会影响后续结果能力。', 'Understand chilling requirements, flower buds and cane structure. Prepare for overwintering, pruning and equipment readiness; plant vigor affects later fruiting.') },
-        { id: 'vegetative', title: text('营养生长', 'Vegetative growth'), body: text('新梢、叶片和根系发展。关注叶色、长势、根区水分与通气，建立健康的树冠和根系。', 'Shoots, leaves and roots develop. Observe leaf color, vigor, root-zone moisture and aeration to build a healthy canopy and root system.') },
-        { id: 'flowering', title: text('开花与坐果', 'Flowering and fruit set'), body: text('关注花部健康、授粉条件与坐果情况。水分波动、低温或花部病害可能影响坐果，需要较及时的观察。', 'Monitor flower health, pollination and fruit set. Moisture fluctuation, low temperature and flower disease may affect fruit set, requiring timely observations.') },
-        { id: 'fruit_set', title: text('果实发育', 'Fruit development'), body: text('果实膨大，水分供应稳定性尤其重要。观察果径、叶片萎蔫、滴头流量和病害迹象，避免仅凭旧数据安排供水。', 'Fruit expands and stable water supply is especially important. Observe size, leaf wilt, dripper flow and disease signs; avoid planning supply solely from old data.') },
-        { id: 'ripening', title: text('成熟与分批采收', 'Ripening and repeated harvest'), body: text('同一地块通常不是一次全部成熟。关注着色、硬度、裂果与果腐，安排采摘人手和降温运输，平衡产量、品质与损耗。', 'Fruit generally ripens over multiple picks. Monitor color, firmness, cracking and rot; arrange labor, cooling and transport to balance yield, quality and losses.') },
-        { id: 'harvest', title: text('采后恢复与下一年准备', 'Postharvest recovery and next season'), body: text('多年生植株仍需维持健康叶片与树势。采后养护、枝条管理和花芽形成，会影响下一季的生产基础。', 'Perennial plants still need healthy leaves and vigor. Postharvest care, cane management and bud formation establish the basis of next season’s crop.') },
+        ...BLUEBERRY_STAGE_CARDS,
+      ] },
+      { id: 'after-season', title: text('采后与下一年：延伸知识', 'After harvest and next season: background'), cards: [
+        { id: 'postharvest', title: text('采后恢复与下一年准备', 'Postharvest recovery and next-season preparation'), body: text('采收结束后仍需维持叶片和根系健康，为枝条恢复、花芽形成和下一年生产打基础。它属于多年生经营背景，不对应当前试玩的采收期，也不会新增游戏阶段。', 'After harvest, maintain healthy leaves and roots to support cane recovery, flower-bud formation and next year’s production. This is perennial business background, not the demo’s harvest stage, and introduces no new simulated stage.') },
       ] },
       { id: 'business', title: text('经营与市场规律', 'Business and market patterns'), cards: [
         { id: 'costs', title: text('经营要算完整成本', 'Account for the complete cost'), body: text('除水肥与田间作业外，还要考虑苗木和设施投入、采摘用工、包装、分级、冷链、物流与损耗。实际经营应看可售产量和单位可售产品的成本。', 'Include plants, infrastructure, harvest labor, packing, grading, cold chain, logistics and losses alongside field inputs. Evaluate marketable yield and cost per saleable unit.') },

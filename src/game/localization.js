@@ -1,5 +1,7 @@
 import { GAME_TEXT, GAME_LABELS, GAME_MESSAGES, GAME_MIXED } from './gameText.js';
 
+import { GROWTH_STAGES } from '../domain/growthStages.js';
+
 const entries = new Map();
 const add = (source, zh, en) => entries.set(source.toLowerCase(), { zh, en });
 for (const [zh, en] of GAME_TEXT) { add(zh, zh, en); add(en, zh, en); }
@@ -13,13 +15,16 @@ const enumLabels = {
   morning: ['早会', 'Morning meeting'], end_of_day: ['日终复盘', 'End of day'], sensor: ['传感器', 'Sensor'], worker: ['现场人员', 'Field team'], manager: ['经理', 'Manager'],
   inspection: ['田间巡查', 'Field inspection'], manager_inspection: ['经理亲自巡查', 'Manager personal inspection'],
   irrigation: ['系统灌溉', 'Irrigation'], manual_watering: ['人工补水', 'Manual watering'], spraying: ['喷施', 'Spraying'], repair: ['设备维修', 'Equipment repair'], sensor_relocation: ['传感器迁移', 'Sensor relocation'],
-  waterStress: ['水分胁迫', 'Water stress'], stage: ['生长阶段', 'Growth stage'], vegetative: ['营养生长', 'Vegetative'], flowering: ['开花期', 'Flowering'], fruit_set: ['果实发育', 'Fruit development'], ripening: ['成熟期', 'Ripening'], harvest: ['采收准备', 'Harvest preparation'],
+  waterStress: ['水分胁迫', 'Water stress'], stage: ['生长阶段', 'Growth stage'],
   manager_judgment: ['经理判断', 'Manager review'], proposal_arrived: ['建议已送达', 'Proposal arrived'], review_reminder: ['复查提醒', 'Review reminder'], deadline_missed: ['错过期限', 'Deadline missed'],
   lab: ['实验室', 'Laboratory'], scout: ['巡查人员', 'Scout'], operations: ['作业', 'Operations'], water: ['水分', 'Water'], quality: ['品质', 'Quality'],
   'null': ['未知', 'Unknown'], Attention: ['注意力', 'Attention'], Sensor: ['传感器', 'Sensor'], Valves: ['阀门', 'Valves'], Pipes: ['管道', 'Pipes'], Drippers: ['滴头', 'Drippers'],
   biomass: ['生物量', 'Biomass'], Repairs: ['维修次数', 'Repairs'], waterConsumed: ['用水量', 'Water consumed'], Samples: ['样本', 'Samples'],
 };
 for (const [source, [zh, en]] of Object.entries(enumLabels)) add(source, zh, en);
+for (const [id, { zh, en }] of Object.entries(GROWTH_STAGES)) { add(id, zh, en); add(zh, zh, en); add(en, zh, en); }
+// Old save reports retain their original labels; normalize these at display time.
+for (const [alias, id] of [['Fruit Development', 'fruit_set'], ['果实发育', 'fruit_set'], ['Harvest Preparation', 'harvest'], ['采收准备', 'harvest'], ['营养生长', 'vegetative'], ['成熟期', 'ripening']]) { const { zh, en } = GROWTH_STAGES[id]; add(alias, zh, en); }
 const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Legacy labels may themselves contain English terms. Normalize catalog output,
 // rather than modifying stored observations or a player's own written rationale.

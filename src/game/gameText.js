@@ -1,5 +1,14 @@
 /** Presentation-only catalog. Historical facts, IDs and simulation enum values stay unchanged. */
 export const GAME_TEXT = [
+  ['作物状态', 'Crop condition'], ['设备状态', 'Equipment condition'],
+  ['资源消耗', 'Resource consumption'], ['关键结果', 'Key results'], ['执行状态', 'Execution status'],
+  ['实际用水', 'Actual water used'], ['作业日期', 'Work date'], ['任务汇总', 'Task summary'],
+  ['完成', 'Completed'], ['受阻', 'Blocked'], ['失败或部分完成', 'Failed or partly completed'],
+  ['尚无作业执行结果。', 'No execution results yet.'], ['查看详细观测与执行记录', 'View observations and execution details'],
+  ['作物与设备巡查', 'Crop and equipment inspection'], ['预计水分胁迫', 'Expected water stress'],
+  ['预计影响，次日早会正式更新；不代表已确认恢复。', 'Expected impact, updated next morning; recovery is not confirmed.'],
+  ['设备部件', 'Equipment components'], ['发现', 'Findings'],
+
   ["暂无信息", "No information yet"],
   ["当天", "Today"],
   ["水分信息", "Water information"],
@@ -48,7 +57,7 @@ export const GAME_TEXT = [
   ['传感器', 'Sensor'], ['现场人员', 'Field team'], ['实验室', 'Laboratory'], ['现场检查', 'Field inspection'], ['报告', 'Report'], ['估计', 'Estimate'], ['水分胁迫', 'Water stress'], ['生长阶段', 'Growth stage'], ['病害压力', 'Disease pressure'], ['营养状态', 'Nutrient status'],
   ['灌溉', 'Irrigation'], ['设备维护', 'Maintenance'], ['采收', 'Harvest'], ['经理亲自巡查', 'Manager personal inspection'], ['人工补水', 'Manual watering'], ['喷施', 'Spraying'], ['设备维修', 'Equipment repair'], ['传感器迁移', 'Sensor relocation'], ['田间巡查', 'Field inspection'], ['系统灌溉', 'System irrigation'],
   ['农场经理', 'Farm manager'], ['农艺师', 'Agronomist'], ['灌溉主管', 'Irrigation supervisor'], ['田间主管', 'Cultivation supervisor'], ['维护负责人', 'Maintenance lead'], ['Sentinel 分析助手', 'Sentinel assistant'], ['依据现有证据', 'Use available evidence'], ['控制作物风险', 'Reduce crop risk'], ['考虑资源约束', 'Consider resource limits'], ['仍有信息不确定性', 'Information is uncertain'], ['下属', 'Team member'], ['作业', 'Operation'],
-  ['蓄水池', 'Water reservoir'], ['田间班组 A', 'Field crew A'], ['滴灌设备', 'Irrigation rig'], ['维护人员', 'Maintenance staff'], ['营养生长期', 'Vegetative'], ['开花期', 'Flowering'], ['坐果期', 'Fruit development'], ['转熟期', 'Ripening'], ['采收期', 'Harvest preparation'],
+  ['蓄水池', 'Water reservoir'], ['田间班组 A', 'Field crew A'], ['滴灌设备', 'Irrigation rig'], ['维护人员', 'Maintenance staff'], ['营养生长期', 'Vegetative'], ['开花期', 'Flowering'], ['坐果期', 'Fruit set'], ['转熟期', 'Ripening'], ['采收期', 'Harvest'],
   ['还没有送达的观测。你可以安排现场检查。', 'No observations have arrived. Schedule a field inspection.'], ['收起历史观测', 'Collapse observations'], ['查看全部', 'View all'], ['条观测', 'observations'], ['观测', 'Observed'], ['送达', 'Delivered'], ['可靠度', 'Reliability'],
   ['核对生产单元的现场情况，补充可用证据。', 'Check the unit in person to obtain reliable evidence.'], ['安排现场检查', 'Schedule field inspection'], ['计划日期', 'Planned date'], ['执行人员', 'Assigned staff'], ['检查理由', 'Inspection reason'], ['确认安排检查', 'Confirm inspection'],
   ['选择一个生产单元', 'Select a production unit'], ['点击地图上的地块，查看你已经获得的信息。', 'Select a unit on the map to review available information.'], ['信息不足', 'Insufficient information'], ['分区', 'Cluster'], ['已知生长阶段', 'Observed growth stage'], ['等待阶段报告', 'Awaiting stage report'], ['阶段报告', 'Stage report'], ['未知', 'Unknown'], ['暂无可用证据', 'No available evidence'], ['关联决策', 'Related decisions'], ['关联作业', 'Related operations'], ['最新已送达观测', 'Latest available observations'],
@@ -84,6 +93,9 @@ export const GAME_TEXT = [
 
 /** English-first labels used by the new panels; each has a single-language rendering. */
 export const GAME_LABELS = [
+  ['Observation Time', '观测时间', 'Observation time'], ['Observation source', '观测来源', 'Observation source'],
+  ['Crop Condition', '作物状态', 'Crop condition'], ['Equipment Condition', '设备状态', 'Equipment condition'],
+
   ['Production Unit', '生产单元'], ['Water Stress', '水分胁迫'], ['Crop Status', '作物状态'], ['Confidence', '可信度'], ['Freshness', '信息新鲜度'], ['Equipment', '设备'], ['Sensors', '传感器'], ['Latest Observation', '最新观测'], ['Crop', '作物'], ['Reliability', '长期可靠度'], ['Observation Confidence', '观测可信度'], ['Water Freshness', '水分信息更新'], ['Crop Freshness', '作物与设备信息更新'], ['Confidence Range', '可信区间'], ['Irrigation Equipment', '灌溉设备'], ['Information Freshness', '信息新鲜度'], ['Water Risk', '水分风险'],
   ['Manager Attention', '经理注意力'], ['Labor', '劳动力'], ['Morning Meeting', '早会'], ['Execution', '执行'], ['End of Day', '日终复盘'], ['Next Morning', '次日早会'], ['morning', '早会'], ['execution', '执行'], ['end_of_day', '日终复盘'], ['Today', '今天'], ['Future Date', '未来日期'], ['Table View', '状态表'], ['Spatial View', '空间视图'],
   ['Normal', '正常'], ['Warning', '轻微问题'], ['Significant issue', '显著问题'], ['Fault', '故障'], ['Unknown', '未知'], ['Manager', '经理'], ['Team', '团队'], ['AI Assistant', '智能助手'], ['Accept', '接受'], ['Reject', '拒绝'], ['View', '查看'], ['Reschedule', '改期'], ['Cancel', '取消'], ['Keep', '保留'], ['Fixed', '固定'], ['Mobile', '移动'], ['Soil Moisture', '土壤水分'], ['Mobile Sensor', '移动传感器'],
