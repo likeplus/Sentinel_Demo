@@ -1,0 +1,14 @@
+{
+  "knownStage": "ripening",
+  "unknownStageRetained": true,
+  "localeCoverage": [
+    "zh",
+    "en"
+  ],
+  "consumedWater": 15,
+  "labor": 3,
+  "historicalWorkDate": "2026-03-01",
+  "nextMorningWeather": "Pending decisions · 0No pending decisionsWeather 24.0°C · Rain 0 mm · ET 3.2 mm",
+  "mobileWidth": 390,
+  "errors": []
+}

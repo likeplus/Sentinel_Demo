@@ -2,7 +2,7 @@ import { FARM_ACTIONS } from '../simulation/FarmManagement.js';
 import { availableCapacity } from '../domain/resources.js';
 import { addDays, daysBetween } from '../domain/validation.js';
 
-const STAGES = { vegetative: '营养生长期', flowering: '开花期', fruit_set: '坐果期', ripening: '转熟期', harvest: '采收期' };
+import { GROWTH_STAGE_LABELS as STAGES } from '../domain/growthStages.js';
 const SOURCES = { manager: '经理巡查', sensor: '传感器', worker: '工人', lab: '实验室', scout: '巡查', inspection: '现场检查' };
 const latest = samples => [...samples].sort((a, b) => b.observedAt.localeCompare(a.observedAt) || b.availableAt.localeCompare(a.availableAt))[0];
 const number = value => Number(value || 0).toLocaleString('zh-CN', { maximumFractionDigits: 1 });
@@ -42,7 +42,7 @@ export function buildGameModel(view, metadata = {}) {
     const thresholds = metadata.riskThresholds || { high: 0.6, medium: 0.35 };
     const level = water.value === null ? 'unknown' : water.value >= thresholds.high ? 'high' : water.value >= thresholds.medium ? 'medium' : 'low';
     return { ...unit, varietyId: crop?.varietyId ?? 'unknown', varietyName: variety?.name || crop?.varietyId || '品种未知',
-      cropId: crop?.id ?? null, ...(feedback || {}), stage, water,
+      cropId: crop?.id ?? null, cropPackId: crop?.cropPackId ?? null, ...(feedback || {}), stage, water,
       risk: { level, label: { unknown: '风险未知', high: '水分风险高', medium: '水分风险中', low: '水分风险低' }[level], status: water.status },
       observations: [...observations].sort((a, b) => b.availableAt.localeCompare(a.availableAt) || b.observedAt.localeCompare(a.observedAt)),
       operations: view.operations.filter(operation => operation.productionUnitIds.includes(unit.id)),

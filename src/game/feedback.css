@@ -31,4 +31,13 @@
 .fg-focus-target { outline:3px solid #729563; outline-offset:3px; }.fb-selection input,.fb-table input[type=checkbox] { accent-color:#477c46; width:16px; height:16px; }
 
 .fb-freshness-help { font-size:12px; line-height:1.6; color:#647362; max-width:850px; }
+.fb-review-summary { display:flex; flex-wrap:wrap; gap:10px 18px; padding:14px; margin-bottom:16px; background:#f0f6ed; border-radius:7px; font-size:13px; }
+.fb-review-table { white-space:normal; min-width:650px; table-layout:fixed; }
+.fb-review-table caption { text-align:left; font-size:12px; color:#64736a; padding:0 0 10px; }
+.fb-review-table th:nth-child(1) { width:10%; }.fb-review-table th:nth-child(2) { width:17%; }.fb-review-table th:nth-child(3) { width:12%; }.fb-review-table th:nth-child(4) { width:21%; }.fb-review-table th:nth-child(5) { width:40%; }
+.fb-review-table td { vertical-align:top; overflow-wrap:anywhere; }
+.fb-review-table td:first-child button,.fb-review-resources span { display:block; margin-bottom:6px; }
+.fb-review-table td p { margin:0 0 8px; font-size:12px; }
+.fb-review-details { margin-top:10px; }.fb-review-details > summary { color:#476e32; cursor:pointer; font-size:12px; }
+.fb-review-details[open] > summary { margin-bottom:10px; }.fb-review-impact { padding:8px; border-left:2px solid #86a96b; background:#f5f8f1; }
 .fg-information-age { padding-top:12px; }.fg-information-age h4 { font-size:12px; margin:0 0 8px; }.fg-information-age p { display:flex; justify-content:space-between; gap:10px; font-size:12px; margin:7px 0; }.fg-information-age small { display:block; line-height:1.6; color:#788471; }

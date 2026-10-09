@@ -28,7 +28,7 @@ describe('Phase 2 interface localization', () => {
   it('selects one language from crop guides without losing the finding value', () => {
     expect(t('zh', 'Pollination and fruit set / 授粉与坐果')).toBe('授粉与坐果');
     expect(t('en', 'Pollination and fruit set / 授粉与坐果')).toBe('Pollination and fruit set');
-    expect(t('en', 'Stage / 阶段: fruit_set')).toBe('Growth stage: Fruit development');
+    expect(t('en', 'Stage / 阶段: fruit_set')).toBe('Growth stage: Fruit set');
     expect(t('zh', 'Growth / 长势: vigorous / 良好')).toBe('长势: 良好');
   });
   it('localizes dynamic execution results and AI rationale without mutating engine data', () => {

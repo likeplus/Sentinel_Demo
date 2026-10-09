@@ -1,3 +1,4 @@
+import { GROWTH_STAGES } from '../domain/growthStages.js';
 import { addDays, clone, dateMs, daysBetween } from '../domain/validation.js';
 import { createOperation, detectResourceConflicts } from '../domain/operation.js';
 import { availableCapacity, isCapacityResource } from '../domain/resources.js';
@@ -20,13 +21,14 @@ export const ROLE_CAPABILITIES = {
   field_supervisor: ['crop_management', 'field_inspection', 'manual_watering', 'spraying'],
   maintenance_lead: ['equipment_repair', 'sensor_relocation'],
 };
-export const STAGE_GUIDE = {
-  vegetative: { label: 'Vegetative', zh: '营养生长', water: 'Moderate / 中', pest: 'Young leaves / 新叶', happening: 'Canopy and roots develop / 枝叶与根系发育', observe: 'Leaf color, vigor, root moisture / 叶色、长势、根区水分', priority: 'Build healthy canopy / 保持健康长势', sensitivity: 0.9 },
-  flowering: { label: 'Flowering', zh: '开花期', water: 'High / 高', pest: 'High: flower infection / 高：花部侵染', happening: 'Pollination and fruit set / 授粉与坐果', observe: 'Flowers, pollination, leaf wetness / 花、授粉、叶面湿润', priority: 'Stable moisture; inspect flower disease / 稳定水分，检查花部病害', sensitivity: 1.3 },
-  fruit_set: { label: 'Fruit Development', zh: '果实发育', water: 'Very high / 很高', pest: 'Fruit and leaf disease / 果叶病害', happening: 'Fruit expansion / 果实膨大', observe: 'Fruit size, leaf wilt, dripper flow / 果径、萎蔫、滴头流量', priority: 'Avoid water deficit / 避免缺水', sensitivity: 1.5 },
-  ripening: { label: 'Ripening', zh: '成熟期', water: 'High / 高', pest: 'Fruit rot / 果腐', happening: 'Color and quality develop / 着色与品质形成', observe: 'Fruit condition, cracking, water stress / 果况、裂果、水分胁迫', priority: 'Protect quality; avoid overwatering / 保品质，避免过量供水', sensitivity: 1.2 },
-  harvest: { label: 'Harvest Preparation', zh: '采收准备', water: 'Moderate / 中', pest: 'Fruit rot / 果腐', happening: 'Harvest readiness / 进入适收窗口', observe: 'Ripeness, firmness, fruit health / 成熟度、硬度、果实健康', priority: 'Inspect readiness and harvest access / 检查适收情况与作业通道', sensitivity: 1 },
+const STAGE_DETAILS = {
+  vegetative: { water: 'Moderate / 中', pest: 'Young leaves / 新叶', happening: 'Canopy and roots develop / 枝叶与根系发育', observe: 'Leaf color, vigor, root moisture / 叶色、长势、根区水分', priority: 'Build healthy canopy / 保持健康长势', sensitivity: 0.9 },
+  flowering: { water: 'High / 高', pest: 'High: flower infection / 高：花部侵染', happening: 'Pollination and fruit set / 授粉与坐果', observe: 'Flowers, pollination, leaf wetness / 花、授粉、叶面湿润', priority: 'Stable moisture; inspect flower disease / 稳定水分，检查花部病害', sensitivity: 1.3 },
+  fruit_set: { water: 'Very high / 很高', pest: 'Fruit and leaf disease / 果叶病害', happening: 'Fruit expansion / 果实膨大', observe: 'Fruit size, leaf wilt, dripper flow / 果径、萎蔫、滴头流量', priority: 'Avoid water deficit / 避免缺水', sensitivity: 1.5 },
+  ripening: { water: 'High / 高', pest: 'Fruit rot / 果腐', happening: 'Color and quality develop / 着色与品质形成', observe: 'Fruit condition, cracking, water stress / 果况、裂果、水分胁迫', priority: 'Protect quality; avoid overwatering / 保品质，避免过量供水', sensitivity: 1.2 },
+  harvest: { water: 'Moderate / 中', pest: 'Fruit rot / 果腐', happening: 'Harvest readiness / 进入适收窗口', observe: 'Ripeness, firmness, fruit health / 成熟度、硬度、果实健康', priority: 'Inspect readiness and harvest access / 检查适收情况与作业通道', sensitivity: 1 },
 };
+export const STAGE_GUIDE = Object.fromEntries(Object.entries(STAGE_DETAILS).map(([id, details]) => [id, { ...details, label: GROWTH_STAGES[id].en, zh: GROWTH_STAGES[id].zh }]));
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 const active = task => ['scheduled', 'blocked', 'completed', 'failed'].includes(task.executionStatus);
 const inspection = action => ['inspection', 'manager_inspection'].includes(action);

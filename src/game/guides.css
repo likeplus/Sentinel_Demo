@@ -17,5 +17,13 @@
 .fg-crop-picker button { background:#fff; border:1px solid var(--fg-border); padding:14px 25px; border-radius:10px; color:#476540; text-align:left; cursor:pointer; }
 .fg-crop-picker button[aria-selected="true"] { background:#eaf2e4; border-color:#95b27f; }
 .fg-crop-picker small { display:block; font-size:10px; margin-top:5px; color:#819075; }
+.fg-guide-card.fg-guide-card--current { border:2px solid #648b48; background:#f4f9ef; scroll-margin-top:24px; }
+.fg-guide-current { color:#476e32; font-size:13px; }
+.fg-guide-facts { margin:0; }
+.fg-guide-facts div+div { margin-top:14px; }
+.fg-guide-facts dt { color:#355440; font-size:13px; font-weight:700; }
+.fg-guide-facts dd { margin:4px 0 0; color:#687a65; font-size:13px; line-height:1.8; }
+.fg-knowledge-context { margin-bottom:20px; padding:20px; border-left:4px solid #648b48; }
+.fg-knowledge-context h3 { margin:0; font-size:17px; }.fg-knowledge-context p { font-size:13px; line-height:1.7; }
 @media(max-width:1180px) { .fg-guide-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:760px) { .fg-guide-cards { grid-template-columns:1fr; } .fg-guide-intro h2 { font-size:22px; } }
