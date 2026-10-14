@@ -1,5 +1,6 @@
 /** Presentation-only catalog. Historical facts, IDs and simulation enum values stay unchanged. */
 export const GAME_TEXT = [
+  ['每日玩法说明', 'Daily gameplay guide'], ['收起说明', 'Collapse instructions'],
   ['作物状态', 'Crop condition'], ['设备状态', 'Equipment condition'],
   ['资源消耗', 'Resource consumption'], ['关键结果', 'Key results'], ['执行状态', 'Execution status'],
   ['实际用水', 'Actual water used'], ['作业日期', 'Work date'], ['任务汇总', 'Task summary'],

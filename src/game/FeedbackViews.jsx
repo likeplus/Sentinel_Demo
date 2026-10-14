@@ -10,8 +10,15 @@ import { informationAge as freshness } from './informationAge.js';
 import { waterLevel, statusColor } from './feedbackStatus.js';
 function Dot({ level, children }) {const { t } = useGameLocale();return <span className={`fb-status fb-${level}`}><i />{t(children)}</span>;}
 
-export function Onboarding({ run }) {const { t } = useGameLocale();
-  return <section className="fg-panel fb-onboarding" data-testid="onboarding"><span className="fg-eyebrow">{t("PHASE 2 · 试玩反馈更新")}</span><h2>{t("每天一次早会，把观察变成行动")}</h2><p><b>{t("Production Unit")}</b>{t(" 是单独管理作物、供水和设备的生产单元。早上回顾昨日结果，判断风险，安排今天或未来的工作。")}</p><div className="fb-help-grid"><p><b>{t("Labor")}</b>{t(" 是班组当天的工作容量，不能结转；巡查也占用人力，所以无法每天检查所有单元。")}</p><p><b>{t("Manager Attention")}</b>{t(" 是经理亲自判断和现场工作的认知资源。早会固定消耗 1，普通排程免费；复杂判断消耗 1，经理巡查消耗 2。")}</p><p><b>{t("Confidence")}</b>{t(" 表示信息可信度；")}<b>{t("Information Freshness")}</b>{t(" 表示最新有效信息距今几天。传感器可更新水分信息，却不能代替作物与设备巡查。")}</p></div><p className="fb-loop">{t("观察 → 判断风险 → 安排资源 → Execution → End of Day → Next Morning 复盘")}</p><button className="fg-button fg-button--primary" data-testid="onboarding-dismiss" onClick={() => run('dismissOnboarding')}>{t("开始今天的早会")}</button></section>;
+export function Onboarding({ onboarded, onDismiss }) {
+  const { t } = useGameLocale();
+  const [expanded, setExpanded] = useState(!onboarded);
+  const toggle = event => {
+    const open = event.currentTarget.open;
+    setExpanded(open);
+    if (!open && !onboarded) onDismiss();
+  };
+  return <details className="fg-panel fb-onboarding" data-testid="onboarding" open={expanded} onToggle={toggle}><summary data-testid="onboarding-toggle">{t("每日玩法说明")}</summary><div data-testid="onboarding-content"><h2>{t("每天一次早会，把观察变成行动")}</h2><p><b>{t("Production Unit")}</b>{t(" 是单独管理作物、供水和设备的生产单元。早上回顾昨日结果，判断风险，安排今天或未来的工作。")}</p><div className="fb-help-grid"><p><b>{t("Labor")}</b>{t(" 是班组当天的工作容量，不能结转；巡查也占用人力，所以无法每天检查所有单元。")}</p><p><b>{t("Manager Attention")}</b>{t(" 是经理亲自判断和现场工作的认知资源。早会固定消耗 1，普通排程免费；复杂判断消耗 1，经理巡查消耗 2。")}</p><p><b>{t("Confidence")}</b>{t(" 表示信息可信度；")}<b>{t("Information Freshness")}</b>{t(" 表示最新有效信息距今几天。传感器可更新水分信息，却不能代替作物与设备巡查。")}</p></div><p className="fb-loop">{t("观察 → 判断风险 → 安排资源 → Execution → End of Day → Next Morning 复盘")}</p><button className="fg-button fg-button--primary" data-testid="onboarding-dismiss" onClick={() => setExpanded(false)}>{t("收起说明")}</button></div></details>;
 }
 
 export function FarmStatusTable({ units, selectedId, onSelect, selectedIds = [], onToggle }) {const { t } = useGameLocale();

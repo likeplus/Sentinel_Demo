@@ -22,9 +22,10 @@ const key = 'sentinel:farm-game:save:v1';
   const shot = async name => { await p.screenshot({ path: `${out}/${name}.png`, fullPage: true }); };
   try {
     await p.setViewport({ width: 1440, height: 960 }); await p.goto(`${url}/game`, { waitUntil: 'networkidle0' });
+    await shot('01-today-onboarding'); await commit('onboarding-dismiss');
     await click('tab-map'); await p.waitForSelector(sel('farm-status-table')); assert.equal((await cp()).state.management.phase, 'morning');
     assert.equal(await p.$$(sel('farm-status-table') + ' tbody tr').then(x => x.length), 12);
-    await shot('01-table-onboarding'); await commit('onboarding-dismiss');
+    await shot('01-table');
     await p.setViewport({ width: 1920, height: 1600 }); await shot('00-full-overview'); await p.setViewport({ width: 1440, height: 960 });
     await click('view-spatial'); assert.equal(await p.$$('[data-testid^="map-unit-"]').then(x => x.length), 12);
     assert.equal(await p.$$('[data-layer-status]').then(x => x.length), 48);
