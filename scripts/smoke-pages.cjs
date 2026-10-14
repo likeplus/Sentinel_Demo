@@ -28,8 +28,8 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
     await page.goto(`${origin}${base}#/game`, { waitUntil: 'networkidle0' });
-    await click('tab-map'); await page.waitForSelector('[data-testid="farm-status-table"]');
     await click('onboarding-dismiss');
+    await click('tab-map'); await page.waitForSelector('[data-testid="farm-status-table"]');
     for (const tab of ['map', 'today', 'operations', 'units', 'decisions', 'management', 'guide', 'knowledge']) await click(`tab-${tab}`);
     await click('locale-en'); const before = await checkpoint();
     await page.reload({ waitUntil: 'networkidle0' }); assert.deepEqual(await checkpoint(), before);

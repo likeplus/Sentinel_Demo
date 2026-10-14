@@ -1,0 +1,25 @@
+{
+  "onlyToday": true,
+  "otherTabsChecked": [
+    "map",
+    "units",
+    "operations",
+    "decisions",
+    "management",
+    "guide",
+    "knowledge"
+  ],
+  "removedEyebrow": true,
+  "collapseSaved": true,
+  "reopenFree": true,
+  "keyboard": true,
+  "reload": true,
+  "nextMorning": true,
+  "sameSeedRestart": true,
+  "locales": [
+    "zh",
+    "en"
+  ],
+  "mobileWidth": 390,
+  "errors": []
+}
