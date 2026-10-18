@@ -1,0 +1,43 @@
+{
+  "baseline": "5a71f1711376505ba273ee5bcc62f9b2745078ca",
+  "date": "2026-10-18",
+  "unitTests": {
+    "files": 14,
+    "passed": 137,
+    "durationSeconds": 72.37
+  },
+  "workspace": {
+    "checks": [
+      "Merged desktop workspace",
+      "inspection confidence and historical unknowns",
+      "table/map multi-select",
+      "inline calendar",
+      "draft survives knowledge navigation",
+      "future and same-day operations",
+      "settlement then next morning",
+      "independent sensor freshness",
+      "asset-based relocation",
+      "old preference migration",
+      "task links across filters",
+      "mobile width",
+      "read-only browsing"
+    ],
+    "errors": [],
+    "screenshots": "docs/validation/screenshots/workspace",
+    "completedDayIndex": 2
+  },
+  "fullHistory": {
+    "phaseClicks": 56,
+    "days": 28,
+    "operations": 112,
+    "storedChars": 1247517,
+    "utf16Bytes": 2495034,
+    "historicalDays": 29,
+    "errors": []
+  },
+  "lint": {
+    "newDiagnostics": 0,
+    "existingErrors": 22,
+    "existingWarnings": 8
+  }
+}

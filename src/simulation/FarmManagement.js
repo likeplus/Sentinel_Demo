@@ -38,6 +38,21 @@ const pending = s => tasks(s).filter(t => ['scheduled', 'blocked'].includes(t.ex
 const resource = (s, id) => s.farmState.resources.find(r => r.id === id);
 const fail = (code, message, extra = {}) => ({ accepted: false, code, message, ...extra });
 
+// Composite operations assign each resource only the actions it actually performs.
+// A water stock need not support inspection; a crew must support every attached
+// labor action. Keep the legacy operation allocator's other capacity checks.
+function incompatibleTaskResources(task, resources) {
+  return task.assignedResourceIds.filter(id => {
+    const r = resources.find(item => item.id === id);
+    if (!r || !r.compatibleOperations.length) return false;
+    const actions = ['crew', 'person'].includes(r.type) ? task.actions.filter(a => FARM_ACTIONS[a].labor > 0)
+      : r.type === 'water' ? task.actions.filter(a => FARM_ACTIONS[a].water > 0)
+      : r.id === 'irrigation-rig' ? task.actions.filter(a => a === 'irrigation') : [task.type];
+    return actions.some(a => !r.compatibleOperations.includes(a)
+      && !(a === 'repair' && r.compatibleOperations.includes('maintenance')));
+  });
+}
+
 export function initializeManagement(s, config, random) {
   s.management = { phase: 'morning', dailyLabor: config.dailyLabor, dailyAttention: config.dailyAttention,
     laborAvailability: config.laborAvailability || {}, attentionRemaining: config.dailyAttention - 1,
@@ -138,6 +153,7 @@ export function scheduleFarmTask(s, input, replaceId = null, prepareOnly = false
     const previous = moves.filter(t => t.plannedStart < input.date).at(-1);
     if ((previous?.unitId || sensor.location) === unit.id) return fail('sensor', 'Sensor is already at the destination.');
   }
+  if (!input.plan && costs.labor && resource(s, input.crewId || 'crew-a')?.type !== 'crew') return fail('crew', 'Choose a field crew.');
   const assignedResourceIds = input.plan?.assignedResourceIds || [...(costs.labor ? [input.crewId || 'crew-a'] : []), ...(input.actions.includes('irrigation') ? ['irrigation-rig'] : []), ...(costs.water ? ['water'] : [])];
   const task = createOperation({ ...(input.plan || {}), id: replaceId || input.id || `TASK-${m.sequence + 1}`, feedbackTask: true, sourceType: input.plan?.sourceType || 'task', sourceId: input.decisionId || null,
     type: input.actions[0], productionUnitIds: [...unitIds], unitId: unit.id, actions: [...input.actions],
@@ -151,6 +167,7 @@ export function scheduleFarmTask(s, input, replaceId = null, prepareOnly = false
   const resources = clone(s.farmState.resources);
   if (repairPlanned) resources.find(r => r.id === 'irrigation-rig').availability[input.date] = 1;
   const conflicts = detectResourceConflicts([...s.scheduledOperations.filter(t => t.id !== replaceId), task], resources).filter(c => c.operationIds.includes(task.id) && c.type !== 'incompatible_operation');
+  conflicts.push(...incompatibleTaskResources(task, resources).map(resourceId => ({ type: 'incompatible_operation', resourceId, operationIds: [task.id] })));
   if (conflicts.length) return fail('capacity', 'Resource Conflict: assigned crew, equipment or inventory unavailable.', { conflicts });
   const expectedCost = assignedResourceIds.reduce((sum, id) => sum + (isCapacityResource(resource(s, id)) ? resource(s, id).operatingCost * task.plannedDurationDays : 0), 0);
   const reservedCost = pending(s).filter(t => t.id !== replaceId).reduce((sum, t) => sum + (t.expectedCost || 0), 0);
@@ -201,9 +218,12 @@ export function executeFarmDay(s, packs, random) {
   m.expectedImpacts = [];
   const usage = new Map();
   for (const task of today) {
-    // A combined repair restores equipment before its attached irrigation.
-    if (task.actions.includes('repair')) for (const effect of task.maintenanceEffects) resource(s, effect.resourceId).availability[s.currentDate] = effect.factor;
-    const unavailable = task.assignedResourceIds.filter(id => { const r = resource(s, id); return isCapacityResource(r) ? (usage.get(id) || 0) + task.plannedDurationDays > availableCapacity(r, s.currentDate) : r.status !== 'available' || (task.resourceQuantities[id] || 0) > r.quantity; });
+    // Check combined repair + irrigation against the repaired capacity without
+    // applying any actual repair when the task is blocked by another resource.
+    const executionResources = task.actions.includes('repair') ? clone(s.farmState.resources) : s.farmState.resources;
+    if (task.actions.includes('repair')) for (const effect of task.maintenanceEffects) executionResources.find(r => r.id === effect.resourceId).availability[s.currentDate] = effect.factor;
+    const incompatible = incompatibleTaskResources(task, executionResources);
+    const unavailable = task.assignedResourceIds.filter(id => { const r = executionResources.find(item => item.id === id); return !r || incompatible.includes(id) || (isCapacityResource(r) ? (usage.get(id) || 0) + task.plannedDurationDays > availableCapacity(r, s.currentDate) : r.status !== 'available' || (task.resourceQuantities[id] || 0) > r.quantity); });
     if (unavailable.length) { task.executionStatus = 'blocked'; task.deviations.push({ type: 'resource_unavailable', date: s.currentDate, resourceIds: unavailable }); m.lastResults.push({ taskId: task.id, unitId: task.unitId, status: 'blocked', labor: 0, results: [{ unitId: task.unitId, message: 'Resource Conflict: assigned crew, equipment or inventory unavailable.' }] }); continue; }
     task.actualDurationDays = task.plannedDurationDays; task.actualResourceIds = [...task.assignedResourceIds];
     task.cost = task.expectedCost || 0;

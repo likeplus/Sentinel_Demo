@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const fs = require('node:fs/promises');
 const assert = require('node:assert/strict');
 const out = '/tmp/sentinel-game-localization';
-const previews = 'docs/validation/screenshots/latest';
+const previews = '/tmp/sentinel-game-localization/previews';
 (async () => {
   await fs.mkdir(out, { recursive: true });
   await fs.mkdir(previews, { recursive: true });
@@ -15,7 +15,7 @@ const previews = 'docs/validation/screenshots/latest';
     const page = await browser.newPage(), errors = [], audit = {};
     page.on('pageerror', e => errors.push(e.message)); await page.setViewport({ width: 1440, height: 1050 });
     await page.goto('http://127.0.0.1:5193/game', { waitUntil: 'networkidle0' });
-    const click = async id => { const s = `[data-testid="${id}"]`; await page.waitForSelector(s); await page.$eval(s, e => e.scrollIntoView({ block: 'center' })); await page.click(s); };
+    const click = async id => { const s = `[data-testid="${id}"]`; await page.waitForSelector(s); await page.$eval(s, e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await page.click(s); };
     const body = () => page.$eval('[data-testid="game-root"]', e => e.innerText);
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
@@ -23,8 +23,8 @@ const previews = 'docs/validation/screenshots/latest';
     const initial = await checkpoint();
     await click('tab-map');
     const age = await page.$eval('[data-testid="freshness-PU-01"]', e => e.textContent);
-    assert.match(age, /水分信息更新: 当天/); assert.match(age, /作物与设备信息更新: 当天/);
-    assert.match(await page.$eval('[data-testid="freshness-PU-05"]', e => e.textContent), /作物与设备信息更新: 5天前/);
+    assert.match(age, /信息更新: 当天/); assert.match(await page.$eval('[data-testid="pest-signs-PU-01"]', e => e.textContent), /信息更新: 当天/);
+    assert.match(await page.$eval('[data-testid="pest-signs-PU-05"]', e => e.textContent), /信息更新: 5天前/);
     assert.doesNotMatch(age, /0d|作物\s*\d+天|5天\+/);
     assert.match(await page.$eval('[data-testid="freshness-PU-04"]', e => e.textContent), /暂无信息/);
     await click('table-unit-PU-05'); await page.select('[data-testid="cluster-filter"]', 'CL-1');
@@ -34,7 +34,7 @@ const previews = 'docs/validation/screenshots/latest';
     await click('locale-en'); assert.deepEqual(await checkpoint(), initial, 'switching language does not mutate game state');
     for (const locale of ['en', 'zh']) {
       await click(`locale-${locale}`); audit[locale] = {};
-      for (const tab of ['map', 'today', 'operations', 'units', 'decisions', 'management', 'guide', 'knowledge']) {
+      for (const tab of ['map', 'decisions', 'management', 'guide', 'knowledge']) {
         await click(`tab-${tab}`);
         await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
         const text = await body(); audit[locale][tab] = text;
@@ -49,11 +49,11 @@ const previews = 'docs/validation/screenshots/latest';
     }
     await click('tab-map'); await click('table-unit-PU-04'); await page.$eval('[data-testid="unit-delegate-ai"]', e => e.click());
     await click('tab-decisions'); await click('accept-DEC-1');
-    await click('tab-operations'); await page.select('[data-testid="task-unit"]', 'PU-01'); await click('attach-manual_watering'); await click('task-confirm');
-    await click('advance-day'); await click('tab-today'); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
+    await click('tab-map'); await page.select('[data-testid="task-unit"]', 'PU-01'); await click('attach-manual_watering'); await click('task-confirm');
+    await click('advance-day'); await click('tab-map'); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
     audit.zh.results = await body(); await click('locale-en'); audit.en.results = await body();
     assert.deepEqual(audit.en.results.split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], 'English execution and AI history remain localized');
-    for (const tab of ['map', 'operations', 'decisions', 'management']) { await click(`tab-${tab}`); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; })); const content = await body(); assert.deepEqual(content.split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], `English ${tab} localizes execution reports and rationale`); }
+    for (const tab of ['map', 'decisions', 'management']) { await click(`tab-${tab}`); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; })); const content = await body(); assert.deepEqual(content.split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], `English ${tab} localizes execution reports and rationale`); }
     await click('advance-day');
     for (let i = 0; i < 2; i++) { await click('advance-day'); await click('advance-day'); }
     await click('tab-decisions'); await click('ai-delegate-water-stress-pu03');
@@ -61,9 +61,9 @@ const previews = 'docs/validation/screenshots/latest';
     await click('tab-decisions'); await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
     assert.deepEqual((await body()).split('\n').filter(line => /[\u4e00-\u9fff]/.test(line) && line !== '中文'), [], 'English authored case and AI proposal');
     await click('locale-zh');
-    if (await page.$('[data-testid="onboarding-dismiss"]')) await click('onboarding-dismiss');
+    await click('tab-map'); if (await page.$('[data-testid="onboarding-dismiss"]')) await page.$eval('[data-testid="onboarding-dismiss"]', e => e.click());
     await page.setViewport({ width: 1920, height: 1080 });
-    for (const [index, tab] of ['map', 'today', 'decisions', 'operations', 'guide', 'knowledge'].entries()) {
+    for (const [index, tab] of ['map', 'decisions', 'management', 'guide', 'knowledge'].entries()) {
       await click(`tab-${tab}`);
       if (tab === 'map') await click('table-unit-PU-04');
       await page.setViewport({ width: 1920, height: 1080 });

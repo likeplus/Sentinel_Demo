@@ -19,7 +19,8 @@
     "test:game:review": "node scripts/smoke-review-clarity.cjs",
     "test:game:onboarding": "node scripts/smoke-onboarding.cjs",
     "build:pages": "node scripts/build-pages.mjs",
-    "test:pages": "node scripts/smoke-pages.cjs"
+    "test:pages": "node scripts/smoke-pages.cjs",
+    "test:game:workspace": "node scripts/smoke-workspace.cjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

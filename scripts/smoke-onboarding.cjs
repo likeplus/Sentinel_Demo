@@ -19,13 +19,13 @@ const puppeteer = require('puppeteer');
     await page.setViewport({ width: 1440, height: 1000 });
     await page.goto('http://127.0.0.1:5195/game', { waitUntil: 'networkidle0' });
     const sel = id => `[data-testid="${id}"]`;
-    const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), element => element.scrollIntoView({ block: 'center' })); await page.click(sel(id)); };
+    const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), element => { for (let p = element.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(element.tagName === 'SUMMARY' && p === element.parentElement)) p.open = true; element.scrollIntoView({ block: 'center' }); }); await page.click(sel(id)); };
     const raw = () => page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'));
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await raw()).checkpoint;
     const gameplay = async () => { const state = (await checkpoint()).state; delete state.management.onboarded; return state; };
     const expanded = async open => { await page.waitForFunction((selector, open) => document.querySelector(selector)?.open === open, {}, sel('onboarding'), open); };
-    const otherTabs = ['map', 'units', 'operations', 'decisions', 'management', 'guide', 'knowledge'];
+    const otherTabs = ['decisions', 'management', 'guide', 'knowledge'];
     const baseline = await gameplay(), initialSave = await raw();
     await expanded(true);
     assert.equal(await page.$(`${sel('onboarding')} .fg-eyebrow`), null);
@@ -33,7 +33,7 @@ const puppeteer = require('puppeteer');
     await page.screenshot({ path: `${out}/expanded-zh.png`, fullPage: true });
     for (const tab of otherTabs) { await click(`tab-${tab}`); assert.equal(await page.$(sel('onboarding')), null, `${tab} has no onboarding card`); }
     assert.deepEqual(await gameplay(), baseline);
-    await click('tab-today'); await expanded(true);
+    await click('tab-map'); await expanded(true);
     // Closing the native summary also acknowledges the initial guide; no game resource changes.
     await click('onboarding-toggle'); await expanded(false);
     await page.waitForFunction(initialSave => localStorage.getItem('sentinel:farm-game:save:v1') !== initialSave, {}, initialSave);
@@ -45,7 +45,7 @@ const puppeteer = require('puppeteer');
     assert.equal(await raw(), acknowledged, 'reopening does not alter the save');
     await click('onboarding-dismiss'); await expanded(false);
     assert.equal(await raw(), acknowledged, 'collapsing a read guide does not alter gameplay');
-    await click('tab-map'); await click('tab-today'); await expanded(false);
+    await click('tab-guide'); await click('tab-map'); await expanded(false);
     await page.reload({ waitUntil: 'networkidle0' }); await expanded(false); assert.equal(await raw(), acknowledged);
     await click('onboarding-toggle'); await expanded(true); await click('locale-en');
     assert.equal(await page.$eval(sel('onboarding-toggle'), element => element.innerText), 'Daily gameplay guide');
@@ -67,7 +67,7 @@ const puppeteer = require('puppeteer');
     await click('onboarding-dismiss'); await expanded(false);
     assert.deepEqual(await gameplay(), baseline);
     assert.deepEqual(errors, []);
-    const report = { onlyToday: true, otherTabsChecked: otherTabs, removedEyebrow: true,
+    const report = { onlyOverview: true, otherTabsChecked: otherTabs, removedEyebrow: true,
       collapseSaved: true, reopenFree: true, keyboard: true, reload: true, nextMorning: true, sameSeedRestart: true,
       locales: ['zh', 'en'], mobileWidth: 390, errors };
     await fs.writeFile(`${out}/acceptance.json`, JSON.stringify(report, null, 2)); console.log('PASS onboarding:', report);

@@ -116,3 +116,5 @@ npm run dev
 团队本轮流程设计：[Phase 2 农场经理试玩流程优化](docs/09_Phase2_Manager_Flow_Design.md)，含多选批量规则、每日两步操作、资源报价、存档兼容及实现入口；[验收记录](docs/validation/manager-flow-results.md)。
 
 最新试玩反馈设计：[Phase 2 阶段知识与日终复盘](docs/10_Phase2_Review_Clarity_Design.md)，包含统一阶段词汇、知识定位、双语状态、温度格式和实际消耗表格；[验收记录](docs/validation/review-clarity-results.md)。
+
+当前主工作台设计与验收：[Phase 2 农场经理主工作台](docs/11_Phase2_Manager_Workspace_Design.md)。下一步业务输入：[蓝莓持续策略问题清单](docs/12_Blueberry_Persistent_Policy_Questions.md)。
