@@ -61,7 +61,7 @@ export class GameController {
 
   #metadata() {
     const config = this.#baseFixture.scenario;
-    const varieties = Object.fromEntries(Object.values(this.#registry).flatMap(pack => Object.values(pack.varieties).map(variety => [variety.id, { id: variety.id, name: variety.name }])));
+    const varieties = Object.fromEntries(Object.entries(this.#registry).flatMap(([cropPackId, pack]) => Object.values(pack.varieties).map(variety => [`${cropPackId}:${variety.id}`, { id: variety.id, cropPackId, name: variety.name }])));
     return { scenario: { id: config.id, name: config.name, startDate: config.startDate, endDate: config.endDate },
       varieties, criticalResourceIds: config.criticalResourceIds, emergencySupplies: config.emergencySupplies || [],
       riskThresholds: config.riskThresholds, initialResources: this.#baseFixture.resources.map(resource => ({ id: resource.id, quantity: resource.quantity })) };

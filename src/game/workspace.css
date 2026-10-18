@@ -1,0 +1,35 @@
+/* One manager workspace: delivered evidence on the left, commitments/results on the right. */
+.fg-manager-workspace { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(380px,1fr); gap:20px; align-items:start; }
+.fg-observe-column,.fg-arrange-column { min-width:0; display:flex; flex-direction:column; gap:20px; }
+.fg-manager-workspace .fg-panel { margin:0; padding:20px; min-width:0; }
+.fg-manager-workspace h2 { font-size:18px; margin:0 0 14px; }
+.fg-manager-workspace .fg-map-panel { overflow:hidden; }
+.fg-manager-workspace .fg-map-panel > .fg-panel-heading { align-items:center; }
+.fg-weather-line { display:flex; flex-wrap:wrap; gap:12px 20px; font-size:13px; }
+.fg-workspace-priorities { font-size:13px; }.fg-workspace-priorities summary { cursor:pointer; }
+.fg-workspace-unit { min-width:0; border:1px solid #dce5d9; border-radius:10px; background:#fffefa; }
+.fg-workspace-unit > summary { padding:16px 20px; cursor:pointer; font-weight:600; }
+.fg-workspace-unit .fg-unit-panel { width:100%; position:static; border:0; }
+.fb-status-scroll { max-height:650px; }.fb-status-table { min-width:760px; }
+.fb-status-table thead { position:sticky; top:0; z-index:3; }
+.fb-status-table th:nth-child(2),.fb-status-table td:nth-child(2) { position:sticky; left:0; z-index:2; background:#fffefa; min-width:120px; box-shadow:1px 0 #e5ebe5; }
+.fb-status-table th:nth-child(2) { background:#f3f6f2; }.fb-status-table .is-selected td:nth-child(2) { background:#eff6ed; }
+.fb-status-table td { vertical-align:top; }.fb-calendar-col { min-width:150px; }.fb-calendar-task { display:block; margin:4px 0; }
+.fg-manager-workspace .fb-task-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.fb-task-grid label { min-width:0; align-content:start; }.fb-task-grid label > b { min-height:39px; display:flex; align-items:center; overflow-wrap:anywhere; }
+.feedback-views .fb-attachments { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.feedback-views .fb-attachments label { display:flex; flex-direction:row; align-items:center; gap:8px; margin:0; padding:10px; border:1px solid #dae5d6; border-radius:6px; }
+.fb-attachments input { margin:0; flex:none; }.fb-capacity-table th,.fb-capacity-table td { padding:8px 6px; }.fb-capacity-table { font-size:11px; }
+.fg-workspace-tasks > label { display:flex; align-items:center; gap:10px; font-size:12px; margin-bottom:12px; }
+.fg-workspace-tasks > details { border-top:1px solid #e5ebe5; margin-top:12px; padding-top:12px; font-size:12px; }.fg-workspace-tasks summary { cursor:pointer; }
+.fg-manager-workspace .fb-review-table { min-width:480px; font-size:11px; }
+.fg-manager-workspace .fb-review-table th:nth-child(1) { width:12%; }.fg-manager-workspace .fb-review-table th:nth-child(2) { width:18%; }.fg-manager-workspace .fb-review-table th:nth-child(3) { width:14%; }.fg-manager-workspace .fb-review-table th:nth-child(4) { width:24%; }.fg-manager-workspace .fb-review-table th:nth-child(5) { width:32%; }
+.farm-game [hidden] { display:none !important; }
+@media (min-width:1650px) { .fg-manager-workspace { grid-template-columns:minmax(0,1.7fr) minmax(460px,1fr); } }
+@media (max-width:1100px) { .fg-manager-workspace { grid-template-columns:minmax(0,1fr); }.fg-observe-column,.fg-arrange-column { gap:16px; } }
+@media (max-width:600px) { .fg-manager-workspace .fg-panel { padding:14px; }.fg-manager-workspace .fb-task-grid { grid-template-columns:1fr; }.feedback-views .fb-attachments { grid-template-columns:1fr; }.fb-help-grid { grid-template-columns:1fr; } }
+.fg-arrange-column[data-phase="end_of_day"] > [data-testid="daily-feedback"],.fg-arrange-column[data-phase="execution"] > [data-testid="daily-feedback"] { order:-1; }
+.fg-manager-workspace .fb-actions > label { display:flex; flex-direction:row; align-items:center; gap:7px; }
+.fg-main:has(.fg-manager-workspace:not([hidden])) .fg-season-progress { margin:12px 0 16px; }
+.fg-main > .fb-onboarding { margin-bottom:12px; }
+.fg-main > .fg-hud article { padding-top:14px; padding-bottom:14px; }

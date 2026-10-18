@@ -2,22 +2,19 @@ import GameLocaleProvider from './GameLocaleProvider.jsx';
 import { useGameLocale } from "./GameLocaleContext.js";import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import { createGameController } from './GameController.js';
-import { Onboarding, UnitSelection, FarmStatusTable, TaskPlanner, SensorDistribution, Calendars, WaterTrend, CropGuide, DecisionHistory, DailyFeedback } from './FeedbackViews.jsx';
+import { Onboarding, SensorDistribution, DecisionHistory } from './FeedbackViews.jsx';
 import { informationAge } from './informationAge.js';
 import { needsComplexDecision } from '../simulation/FarmManagement.js';
-import FarmMap from './FarmMap.jsx';
+import FarmWorkspace from './FarmWorkspace.jsx';
+import { workspaceTab, inspectionEvidence } from './workspaceModel.js';
 import { GameplayGuide, CropEncyclopedia } from './GuideViews.jsx';
 import { waterLevel, statusColor } from './feedbackStatus.js';
 import { GROWTH_STAGE_LABELS as STAGE_LABEL } from '../domain/growthStages.js';
-import { temperatureText } from './displayFormat.js';
 import './unit-panel.css';
 import './game.css';
 
 const TABS = [
 { id: 'map', label: '农场总览', subtitle: 'MAP', icon: 'map' },
-{ id: 'today', label: '今日工作', subtitle: 'TODAY', icon: 'sun' },
-{ id: 'operations', label: '作业排程', subtitle: 'OPERATIONS', icon: 'calendar' },
-{ id: 'units', label: '生产单元', subtitle: 'UNITS', icon: 'grid' },
 { id: 'decisions', label: '决策中心', subtitle: 'DECISIONS', icon: 'branch' },
 { id: 'management', label: '经营管理', subtitle: 'MANAGEMENT', icon: 'chart' },
 { id: 'guide', label: '玩法简介', subtitle: 'GUIDE', icon: 'book' },
@@ -43,10 +40,11 @@ const UI_KEY = 'sentinel:farm-game:ui:v1';
 function readPreferences() {
   try {
     const saved = JSON.parse(localStorage.getItem(UI_KEY) || '{}');
-    return { tab: TABS.some((item) => item.id === saved.tab) ? saved.tab : 'today',
+    return { tab: workspaceTab(saved.tab),
       selectedUnitId: typeof saved.selectedUnitId === 'string' ? saved.selectedUnitId : '',
+      showCalendar: saved.showCalendar === true,
       overlay: ['water', 'tasks', 'freshness'].includes(saved.overlay) ? saved.overlay : 'water' };
-  } catch {return { tab: 'today', selectedUnitId: '', overlay: 'water' };}
+  } catch {return { tab: 'map', selectedUnitId: '', overlay: 'water', showCalendar: false };}
 }
 
 function Glyph({ name, size = 20, ...props }) {const { t } = useGameLocale();
@@ -93,7 +91,7 @@ function ObservationList({ observations = [], limit = 6 }) {const { t } = useGam
     ))}{t(sorted.length > limit && <button className="fg-text-button" onClick={() => setExpanded(!expanded)}>{t(expanded ? '收起历史观测' : `查看全部 ${sorted.length} 条观测`)}</button>)}</div>;
 }
 
-function UnitPanel({ unit, view, run, navigate, onPlan, selectedIds }) {
+function UnitPanel({ unit, view, run, navigate, onPlan }) {
   const { t, locale } = useGameLocale();
   const label = (zh, en) => locale === 'zh' ? zh : en;
   if (!unit) return <section className="fg-panel fg-unit-panel"><Empty title={t('选择一个生产单元')}>{t('点击地图上的地块，查看你已经获得的信息。')}</Empty></section>;
@@ -104,10 +102,10 @@ function UnitPanel({ unit, view, run, navigate, onPlan, selectedIds }) {
   const waterLabel = { normal: label('正常', 'Normal'), mild: label('轻度', 'Mild'), significant: label('显著', 'Significant'), severe: label('严重', 'Severe'), unknown: t('Unknown') }[level];
   const review = maker => { const result = run('openDecision', u.id, maker); if (result.accepted) navigate('decisions', result.decision.id); };
   return <aside className="fg-panel fg-unit-panel fg-unit-organized" data-testid="selected-unit" data-unit-id={unit.id}>
-    {selectedIds.length > 1 && <section className="fg-unit-section"><h3>{t('已选择')} {selectedIds.length}</h3>{view.management.units.filter(item => selectedIds.includes(item.id)).map(item => <p key={item.id}><b>{item.id}</b> · {t('Water Stress')} {item.water.value ?? '—'} · {t('Confidence')} {item.water.confidence}% · {t('水分信息更新')}: {age(item.water.freshness, Boolean(item.water.observedAt))}</p>)}</section>}<header className="fg-unit-header"><span className="fg-eyebrow">{t('PRODUCTION UNIT')}</span><h2>{unit.id}</h2><p>{t(unit.varietyName)} · {unit.clusterId} · {number(unit.area?.value, 2)} {t(unit.area?.unit)}</p></header>
+    <header className="fg-unit-header"><span className="fg-eyebrow">{t('PRODUCTION UNIT')}</span><h2>{unit.id}</h2><p>{t(unit.varietyName)} · {unit.clusterId} · {number(unit.area?.value, 2)} {t(unit.area?.unit)}</p></header>
     <section className="fg-unit-section"><h3>{label('状态摘要', 'Status summary')}</h3>
       <div className={`fg-unit-water fb-${level}`}><div><span>{label('水分胁迫', 'Water stress')}</span><b><i />{waterLabel}</b></div><strong>{u.water.value ?? '—'}<small> / 100</small></strong><p>{label('估计范围', 'Estimated range')} {u.water.range.join('–')}{u.water.provisional && <em>{label('预计影响 · 次日确认', 'Expected impact · Confirm next morning')}</em>}</p></div>
-      <div className="fg-unit-status-grid"><div><span>{label('作物状态', 'Crop status')}</span><b className={`fb-status fb-${statusColor(u.cropStatus)}`}><i />{t(u.cropStatus)}</b></div><div><span>{label('灌溉设备', 'Irrigation equipment')}</span><b className={`fb-status fb-${statusColor(u.equipment.status)}`}><i />{t(u.equipment.status)}</b><small>{label('长期可靠性', 'Reliability')} {u.equipment.reliability}%</small></div></div>
+      <div className="fg-unit-status-grid"><div><span>{label('病虫害迹象', 'Pest/disease signs')}</span><b className={`fb-status fb-${inspectionEvidence(u).level}`}><i />{t(inspectionEvidence(u).signs)}</b></div><div><span>{label('灌溉设备', 'Irrigation equipment')}</span><b className={`fb-status fb-${statusColor(u.equipment.status)}`}><i />{t(u.equipment.status)}</b><small>{label('长期可靠性', 'Reliability')} {u.equipment.reliability}%</small></div></div>
       <div className="fg-unit-stage"><span>{label('生长阶段', 'Growth stage')}</span><b>{t(unit.stage.label)}</b></div>
       <div className="fg-unit-evidence-grid"><div><span>{label('水分可信度', 'Water confidence')}</span><b>{u.water.confidence}%</b></div></div><div className="fg-information-age"><h4>{t('Information Freshness')}</h4><p>{t('水分信息更新')}: <b>{age(u.water.freshness, Boolean(u.water.observedAt))}</b></p><p>{t('作物与设备信息更新')}: <b>{age(u.cropFreshness, Boolean(u.latestInspection))}</b></p><small>{t('表示上次获得有效信息的时间，不是作物的生长天数。巡查同时更新两类信息；之后传感器可单独更新水分信息。')}</small></div>
     </section>
@@ -115,7 +113,7 @@ function UnitPanel({ unit, view, run, navigate, onPlan, selectedIds }) {
       {u.latestInspection && <div className="fg-unit-report"><h4>{label('最新作物与设备巡查', 'Latest crop and equipment inspection')}</h4><small>{u.latestInspection.observedAt} · {Math.round(u.latestInspection.reliability * 100)}%</small><p>{label('作物', 'Crop')}: {t(u.latestInspection.cropCondition)} · {label('设备', 'Equipment')}: {t(u.latestInspection.equipmentCondition)}</p><ul>{u.latestInspection.findings.map((finding, i) => <li key={i}>{t(finding)}</li>)}</ul>{u.latestInspection.equipmentFindings?.map(finding => <p key={finding.part}>{t(finding.part)}: {t(finding.status)}</p>)}</div>}
       <ObservationList key={unit.id} observations={unit.observations} limit={3} /></details></section>
     <section className="fg-unit-section"><h3>{label('待执行任务', 'Pending tasks')}<span>{u.scheduledTasks.length}</span></h3>{u.scheduledTasks.length ? <div className="fg-unit-tasks">{u.scheduledTasks.slice(0, 3).map(task => <button key={task.id} onClick={() => navigate('operations', task.id)}><small>{task.plannedStart} · {label('劳动力', 'Labor')} {task.labor}</small><strong>{t(operationLabel(task))}</strong><Badge status={task.executionStatus} /></button>)}</div> : <p className="fg-muted">{label('暂无待执行任务', 'No pending tasks')}</p>}{u.scheduledTasks.length > 3 && <button className="fg-text-button" onClick={() => navigate('operations')}>{label('查看全部任务', 'View all tasks')} →</button>}</section>
-    <section className="fg-unit-section fg-unit-actions"><h3>{label('安排与操作', 'Planning and actions')}</h3><button className="fg-button fg-button--primary fg-full" data-testid="inspect-unit" disabled={!enabled} onClick={() => onPlan([unit.id], 'inspection')}>{label('安排任务 · 今天或未来', 'Plan tasks · Today or later')}<Glyph name="arrow" size={16} /></button><button className="fg-button fg-button--secondary fg-full" disabled={!enabled} onClick={() => onPlan([unit.id], 'irrigation')}>{t('系统灌溉')}</button>{!enabled && <p className="fg-muted">{label('排程已关闭，请在次日早会安排。', 'Scheduling is closed. Plan at the next morning meeting.')}</p>}
+    <section className="fg-unit-section fg-unit-actions"><h3>{label('安排与操作', 'Planning and actions')}</h3><button className="fg-button fg-button--primary fg-full" data-testid="inspect-unit" disabled={!enabled} onClick={() => onPlan([unit.id])}>{label('安排任务 · 今天或未来', 'Plan tasks · Today or later')}<Glyph name="arrow" size={16} /></button>{!enabled && <p className="fg-muted">{label('排程已关闭，请在次日早会安排。', 'Scheduling is closed. Plan at the next morning meeting.')}</p>}
       {needsComplexDecision(u) && <details className="fg-unit-delegation"><summary>{label('复杂判断与委派', 'Complex review and delegation')}</summary><p>{label('普通排程不扣注意力；高风险或高不确定性时，可亲自判断或委派。', 'Routine scheduling uses no attention. Review or delegate when risk or uncertainty is high.')}</p><button className="fg-button fg-button--secondary" disabled={!enabled || view.management.resources.attention - view.management.resources.attentionReserved < 1} onClick={() => review('Manager')}>{label('经理判断 · 注意力 −1', 'Manager review · Attention −1')}</button><button className="fg-button fg-button--secondary" disabled={!enabled} onClick={() => review('Team')}>{label('交给团队 · 不消耗注意力', 'Delegate to team · No attention cost')}</button><button data-testid="unit-delegate-ai" className="fg-button fg-button--secondary" disabled={!enabled} onClick={() => review('AI Assistant')}>{label('交给智能助手 · 不消耗注意力', 'Delegate to AI · No attention cost')}</button></details>}
       <button className="fg-text-button fg-unit-knowledge" data-testid="unit-knowledge" onClick={() => navigate('knowledge', unit.id)}>{label('查看作物特性与阶段知识', 'Explore crop traits and growth stages')} →</button>
     </section>
@@ -199,25 +197,10 @@ function OperationCard({ operation, view, run }) {const { t } = useGameLocale();
   </article>;
 }
 
-function Today({ view, model, navigate, onPlan }) {
-  const { t } = useGameLocale();
-  const m = view.management;
-  const units = m.units.filter(u => u.water.value === null || u.water.value >= 50 || u.water.freshness >= 3 || u.water.confidence < 60 || u.cropStatus === 'Warning' || u.equipment.status !== 'Normal');
-  const pending = view.operations.filter(op => ['scheduled', 'blocked'].includes(op.executionStatus));
-  const rows = operations => operations.map(op => <button className="fg-schedule-row fg-full fg-list-button" key={op.id} onClick={() => navigate('operations', op.id)}><span>{op.plannedStart}</span><strong>{t(operationLabel(op))}</strong><span>{op.productionUnitIds.join(' · ')} · {t('Labor')} {op.labor}</span><Badge status={op.executionStatus} /></button>);
-  return <div className="fg-today-grid"><section className="fg-panel" data-testid="pending-decisions"><h2>{t('待处理决策')} · {model.openCaseCount}</h2>{model.activeCases.map(d => <button className="fg-priority" key={d.id} onClick={() => navigate('decisions', d.id)}><strong>{t(d.titleZh || d.title)}</strong><Badge status={d.status} /></button>)}{!model.activeCases.length && <p>{t('当前没有待处理决策')}</p>}<p>{t('天气')} {temperatureText(m.weather.temperature)} · {t('降雨')} {m.weather.rainfall} {t('mm')} · {t('ET')} {m.weather.et} {t('mm')}</p></section><section className="fg-panel"><h2>{t('风险与信息缺口')} · {units.length}</h2>{units.map(u => <div className="fb-priority-row" key={u.id}><button className="fg-text-button" onClick={() => navigate('map', u.id)}><b>{u.id}</b> · {t('Water Stress')} {u.water.value ?? t('Unknown')} · {t('Confidence')} {u.water.confidence}% · {t('水分信息更新')}: {t(informationAge(u.water.freshness, Boolean(u.water.observedAt)))}</button>{m.phase === 'morning' && !m.ended && <button className="fg-text-button" data-testid={`priority-plan-${u.id}`} onClick={() => onPlan(u.id, u.water.value === null || u.water.confidence < 60 ? 'inspection' : u.equipment.status === 'Fault' ? 'manual_watering' : 'irrigation')}>{t('安排任务')}</button>}</div>)}{!units.length && <p>{t('当前可见信息未显示明显风险，仍需注意信息新鲜度。')}</p>}</section><section className="fg-panel fg-today-schedule"><h2>{t('今天的任务')}</h2>{rows(pending.filter(op => op.plannedStart <= view.currentDate))}{!pending.some(op => op.plannedStart <= view.currentDate) && <p>{t('今天没有安排作业')}</p>}<details><summary>{t('未来任务')} · {pending.filter(op => op.plannedStart > view.currentDate).length}</summary>{rows(pending.filter(op => op.plannedStart > view.currentDate))}</details><details><summary>{t('今天送达的报告')}</summary><ObservationList observations={view.observations.filter(o => o.availableAt.slice(0, 10) === view.currentDate)} /></details></section></div>;
-}
-
 function AuthoredQuote({ preview, openPurchase }) {
   const { t } = useGameLocale(); if (!preview) return null;
   const quote = preview.quote, capacity = preview.capacity;
   return <div className="fb-capacity">{quote && <><b>{t('Labor')} {quote.labor} · {t('水需求')} {quote.water} {t('m³')} · {t('预计作业费用')} ¥{quote.cost.toFixed(2)}</b><span>{t('场景完整作业方案：按方案时长计费，与标准任务的作业时长可能不同。')} {quote.staffDays} {t('人员日')} · {quote.unitIds.join(' · ')}</span></>}{capacity && <span>{capacity.date} · {t('Available Labor')} {capacity.remaining} · {t('Water Available')} {capacity.waterRemaining} {t('m³')} · {t('Attention')} {capacity.attentionAvailable - capacity.attentionReserved}</span>}{!preview.accepted && <p className="fb-conflict">{t(preview.message)}</p>}{!preview.accepted && openPurchase && <button className="fg-text-button" onClick={openPurchase}>{t('应急采购水资源')}</button>}</div>;
-}
-
-function KnownTimeline({ model, navigate }) {const { t } = useGameLocale();
-  return <section className="fg-panel fg-known-timeline" data-testid="known-timeline"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t("KNOWN PLANS / NEXT 14 DAYS")}</span><h2>{t("已知安排时间线")}</h2></div><small className="fg-muted">{t("只显示已知计划、期限与预期窗口")}</small></div>
-    <div className="fg-timeline-nodes">{t(model.timeline.length ? model.timeline.map((node) => <button key={node.id} onClick={() => navigate(node.type === 'operation' ? 'operations' : node.type === 'decision' ? 'decisions' : 'map')}><small>{t(node.date)}</small><strong>{t(node.label)}</strong></button>) : <p className="fg-muted">{t("未来两周暂无已知安排。尚未发生的随机事件与未送达报告不会显示在这里。")}</p>)}</div>
-  </section>;
 }
 
 function ActionAudit({ action, view }) {const { t } = useGameLocale();
@@ -247,14 +230,14 @@ function Review({ view, model }) {const { t } = useGameLocale();
   </section>;
 }
 
-function Management({ view, model, run, storageStatus, openPurchase, openRestart }) {const { t } = useGameLocale();
+function Management({ view, model, storageStatus, openPurchase, openRestart }) {const { t } = useGameLocale();
   const resources = view.resources;
   return <div className="fg-management">{t(view.ended && <Review view={view} model={model} />)}
     <div className="fg-management-grid"><section className="fg-panel"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t("RESOURCES")}</span><h2>{t("资源与人员")}</h2></div></div><div className="fg-resource-list">{t(resources.map((resource) => <div className="fg-resource-row" key={resource.id}><Glyph name={resource.type === 'water' ? 'drop' : ['crew', 'person'].includes(resource.type) ? 'people' : 'calendar'} size={20} /><div><strong>{t(resourceLabel(resource))}</strong><small>{t(['crew', 'person', 'machine', 'robot'].includes(resource.type) ? `每日容量 ${number(resource.capacityPerDay, 2)} · 今日可用比例 ${number((resource.availability?.[view.currentDate] ?? 1) * 100)}%` : '库存资源')}</small></div><b>{t(['crew', 'person', 'machine', 'robot'].includes(resource.type) ? `${number(resource.capacityPerDay * (resource.availability?.[view.currentDate] ?? 1), 2)} 日` : `${number(resource.quantity, 1)} ${resource.unit === 'm3' ? 'm³' : resource.unit}`)}</b></div>))}</div><button className="fg-button fg-button--secondary" data-testid="purchase-water" disabled={view.ended || view.management.phase !== 'morning'} onClick={openPurchase}><Glyph name="drop" size={16} />{t("应急采购水资源")}</button></section>
       <section className="fg-panel"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t("FINANCIAL POSITION")}</span><h2>{t("经营账目")}</h2></div></div><dl className="fg-finance"><div><dt>{t("可用现金")}</dt><dd>{t(money(view.finance.cash))}</dd></div><div><dt>{t("已发生经营成本（含采购）")}</dt><dd>{t(money(view.finance.operatingCostToDate))}</dd></div><div><dt>{t("预计收入")}</dt><dd>{t(money(view.finance.forecastRevenue))}</dd></div></dl><p className="fg-muted">{t("预计收入是基于可用证据的估计，尚未形成销售到账，不等于实际利润。")}</p><details className="fg-evidence"><summary>{t("查看资金流水")}<span>{t(view.finance.transactions.length)}{t(" 笔")}</span></summary><div className="fg-ledger">{t(view.finance.transactions.map((transaction) => <div key={transaction.id}><span>{t(transaction.date)}</span><span>{t(transaction.type === 'operating_cost' ? '作业费用' : transaction.type === 'emergency_purchase' ? '应急采购' : transaction.type)}</span><strong>{t(money(transaction.amount))}</strong></div>))}</div></details></section>
       <section className="fg-panel"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t("TEAM")}</span><h2>{t("你的农场团队")}</h2></div></div>{t(view.people?.filter((person) => person.id !== view.actorId).map((person) => <div className="fg-team-member" key={person.id}><span className="fg-avatar">{t(personLabel(person)).slice(0, 1)}</span><div><strong>{t(personLabel(person))}</strong><small>{t(person.role === 'sentinel_agent' ? '本地规则分析 · 依据可用证据提出建议' : '可委派分析 · 方案需经理批准')}</small></div></div>))}</section>
       <section className="fg-panel"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t("THIS PLAYTHROUGH")}</span><h2>{t("本轮与存档")}</h2></div></div><dl className="fg-finance"><div><dt>{t("Seed")}</dt><dd className="fg-seed">{String(view.randomSeed)}</dd></div><div><dt>{t("模拟时长")}</dt><dd>{t(model.totalDays)}{t(" 天")}</dd></div><div><dt>{t("本地存档")}</dt><dd>{t(storageStatus.state === 'saved' ? '自动保存已开启' : storageStatus.message)}</dd></div></dl><p className="fg-muted">{t("刷新浏览器会继续本机进度。相同 seed 配合相同的有序选择，可重复同一轮结果。")}</p><button className="fg-button fg-button--secondary" onClick={openRestart}><Glyph name="reset" size={16} />{t("重新开始")}</button><p className="fg-footnote">{t("本阶段固定扮演农场经理。存档保存在此浏览器，清除网站数据会移除存档。")}</p></section></div>
-    {t(!view.ended && <button className="fg-text-button fg-return-map" onClick={() => run('executeDay')}>{t("推进到下一阶段")}<Glyph name="arrow" size={16} /></button>)}
+
   </div>;
 }
 
@@ -285,7 +268,8 @@ function GameContent() {const { t, locale } = useGameLocale();
   const [tab, setTab] = useState(preferences.tab);
   const [selectedUnitId, setSelectedUnitId] = useState(preferences.selectedUnitId);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [planning, setPlanning] = useState(null);
+  const [plannerState, setPlannerState] = useState({ session: '', values: null });
+  const [showCalendar, setShowCalendar] = useState(preferences.showCalendar);
   const [focusedOperationId, setFocusedOperationId] = useState('');
   const [focusedCaseId, setFocusedCaseId] = useState('');
   const [knowledgeUnitId, setKnowledgeUnitId] = useState('');
@@ -294,15 +278,14 @@ function GameContent() {const { t, locale } = useGameLocale();
   const [overlay, setOverlay] = useState(preferences.overlay);
   const [spatial, setSpatial] = useState(false);
   const [layers, setLayers] = useState(['water', 'crop', 'freshness', 'equipment']);
-  const [operationUnitFilter, setOperationUnitFilter] = useState('all');
   const [dialog, setDialog] = useState(null);
   const [notice, setNotice] = useState(null);
   const { view, model, storageStatus } = snapshot;
   useEffect(() => {
     if (!view) return;
-    try {localStorage.setItem(UI_KEY, JSON.stringify({ tab, selectedUnitId, overlay }));}
+    try {localStorage.setItem(UI_KEY, JSON.stringify({ tab, selectedUnitId, overlay, showCalendar }));}
     catch {/* Gameplay remains usable when preference storage is unavailable. */}
-  }, [tab, selectedUnitId, overlay, view]);
+  }, [tab, selectedUnitId, overlay, showCalendar, view]);
   useEffect(() => {
     if (notice?.type !== 'error') return;
     const feedback = document.querySelector('[role="dialog"] [role="alert"]') || document.querySelector('[data-testid="game-error"]');
@@ -315,12 +298,21 @@ function GameContent() {const { t, locale } = useGameLocale();
     if (target) { for (let parent = target.parentElement; parent; parent = parent.parentElement) if (parent.tagName === 'DETAILS') parent.open = true; target.scrollIntoView({ block: 'center' }); target.classList.add('fg-focus-target'); }
   }, [tab, focusedCaseId, focusedOperationId]);
   const navigate = (nextTab, objectId = '') => {
-    setTab(nextTab); setKnowledgeUnitId(nextTab === 'knowledge' ? objectId : ''); setFocusedCaseId(nextTab === 'decisions' ? objectId : ''); setFocusedOperationId(nextTab === 'operations' ? objectId : '');
-    if (nextTab === 'operations' && objectId) setOperationUnitFilter('all');
+    setTab(workspaceTab(nextTab)); setKnowledgeUnitId(nextTab === 'knowledge' ? objectId : ''); setFocusedCaseId(nextTab === 'decisions' ? objectId : ''); setFocusedOperationId(nextTab === 'operations' ? objectId : '');
     if (['map', 'units'].includes(nextTab) && objectId) setSelectedUnitId(objectId);
   };
   const toggleUnit = id => setSelectedIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]);
-  const planUnits = (ids, action = 'inspection') => { setPlanning(previous => ({ ids, action, version: (previous?.version || 0) + 1 })); requestAnimationFrame(() => document.getElementById('inline-task-planner')?.scrollIntoView({ block: 'center' })); };
+  const session = view ? `${view.currentDate}:${view.randomSeed}` : '';
+  const draft = plannerState.session === session ? plannerState.values : {
+    date: view?.currentDate, base: 'inspection', extras: [], sensorId: view?.management.sensors.find(s => !s.fixed)?.id || '',
+    crewId: view?.resources.find(r => r.type === 'crew')?.id || '', reason: '',
+  };
+  const setDraft = updater => setPlannerState(previous => ({ session, values: typeof updater === 'function' ? updater(previous.session === session ? previous.values : draft) : updater }));
+  const planUnits = (ids, action) => {
+    setSelectedIds(ids.length > 1 ? ids : []); if (ids[0]) setSelectedUnitId(ids[0]);
+    if (action) setDraft(previous => ({ ...previous, base: action, extras: [] }));
+    setTab('map'); requestAnimationFrame(() => document.getElementById('inline-task-planner')?.scrollIntoView({ block: 'start' }));
+  };
 
   const run = (method, ...args) => {
     try {
@@ -330,8 +322,8 @@ function GameContent() {const { t, locale } = useGameLocale();
         setNotice({ type: 'error', text: result.error || conflicts || snapshot.error || '这项操作未被接受，请检查计划与资源。' });
       } else {
         setNotice({ type: 'success', text: method === 'executeDay' ? '已推进到下一阶段，报告与作业状态已更新。' : method === 'restart' ? '新的一轮已开始。' : '操作已记录。' });
-        if (method === 'executeDay') navigate('today');
-        if (method === 'restart') {setTab('today');setSelectedUnitId('');setSelectedIds([]);setPlanning(null);setFocusedCaseId('');setClusterFilter('all');setVarietyFilter('all');setOperationUnitFilter('all');}
+        if (method === 'executeDay') navigate('map');
+        if (method === 'restart') {setTab('map');setSelectedUnitId('');setSelectedIds([]);setPlannerState({ session: '', values: null });setFocusedCaseId('');setClusterFilter('all');setVarietyFilter('all');}
       }
       return result;
     } catch (error) {setNotice({ type: 'error', text: error.message });return { accepted: false, error: error.message };}
@@ -341,35 +333,28 @@ function GameContent() {const { t, locale } = useGameLocale();
   const water = view.resources.find((resource) => resource.id === 'water');
   const criticalResource = model.criticalResources[0] || water;
   const attention = view.attention || model.attention || {};
-  const filteredUnits = model.units.filter((unit) => (clusterFilter === 'all' || unit.clusterId === clusterFilter) && (varietyFilter === 'all' || unit.varietyId === varietyFilter));
+  const filteredUnits = model.units.filter((unit) => (clusterFilter === 'all' || unit.clusterId === clusterFilter) && (varietyFilter === 'all' || unit.varietyKey === varietyFilter));
   const selectedUnit = filteredUnits.find(unit => unit.id === selectedUnitId) || filteredUnits[0];
-  const clusterOptions = [...new Set(model.units.map((unit) => unit.clusterId))];
-  const varietyOptions = [...new Map(model.units.map((unit) => [unit.varietyId, unit.varietyName])).entries()];
   return <div className="farm-game" lang={locale === "zh" ? "zh-CN" : "en"} data-locale={locale} data-testid="game-root" data-phase={view.management.phase} data-day-index={model.elapsedDays} data-seed={String(view.randomSeed)}>
     <aside className="fg-sidebar"><Link className="fg-brand" to="/game"><span className="fg-brand-mark"><Glyph name="leaf" size={27} /></span><div><strong>{t("SENTINEL")}</strong><span>{t("FARM MANAGER")}</span></div></Link><div className="fg-play-label"><span className="fg-dot" />{t(model.scenarioName)}</div>
       <nav aria-label={t("农场试玩导航")}>{t(TABS.map((item) => <button key={item.id} data-testid={`tab-${item.id}`} aria-label={t(item.label)} className={`fg-nav-item ${tab === item.id ? 'is-active' : ''}`} aria-current={tab === item.id ? 'page' : undefined} onClick={() => navigate(item.id)}><Glyph name={item.icon} /><span>{t(item.label)}<small>{t(item.subtitle)}</small></span>{t(item.id === 'decisions' && model.openCaseCount > 0 && <b>{t(model.openCaseCount)}</b>)}</button>))}</nav>
       <div className="fg-sidebar-bottom"><div className="fg-manager"><span className="fg-avatar">{t("农")}</span><div><strong>{t("农场经理")}</strong><small>{t("你来决定下一步")}</small></div></div><Link className="fg-demo-link" to="/">{t("返回原有 Demo")}<Glyph name="arrow" size={15} /></Link><p>{t("观察 · 决策 · 执行 · 复盘")}</p></div>
     </aside>
     <div className="fg-workspace"><header className="fg-topbar"><div className="fg-breadcrumb">{t("农场经营 ")}<span>{t("/")}</span> {t(currentTab.label)}</div><div className="fg-topbar-tools"><LanguageTabs /><span className={`fg-save-status fg-save-status--${storageStatus.state}`} data-testid="save-status" title={t(storageStatus.message)}><Glyph name={storageStatus.state === 'saved' ? 'check' : 'alert'} size={14} />{t(storageStatus.state === 'saved' ? '进度已保存' : storageStatus.state === 'memory' ? '仅本次会话保存' : '存档需要关注')}</span><button className="fg-icon-button" aria-label={t("重新开始")} data-testid="restart-open" onClick={() => setDialog('restart')}><Glyph name="reset" size={18} /></button><span className="fg-topbar-avatar">{t("FM")}</span></div></header>
-      <main className="fg-main"><section className="fg-page-heading"><div><span className="fg-eyebrow">{t("YUNNAN BLUEBERRY / TRAINING SCENARIO")}</span><h1>{t(currentTab.label)}<span>{t(tab === 'map' ? '看见农场，做出有依据的选择。' : '每一步选择，都留下可以追溯的记录。')}</span></h1></div><div className="fg-time-control"><div className="fg-date"><Glyph name="calendar" size={19} /><div><strong data-testid="game-date">{t(view.currentDate)}</strong><small>{t("第 ")}{t(model.elapsedDays)}{t(" / ")}{t(model.totalDays)}{t(" 天")}{t(view.ended ? ' · 已结束' : '')}</small></div></div><button className="fg-button fg-button--primary" data-testid="advance-day" disabled={view.ended} onClick={() => run('executeDay')}>{t(view.ended ? '本轮已结束' : { morning: '开始 Execution', execution: '进入 End of Day', end_of_day: 'Next Morning' }[view.management.phase])}<Glyph name="arrow" size={17} /></button></div></section>
-      {tab === 'today' && <Onboarding key={`${view.currentDate}:${view.randomSeed}:${view.management.onboarded}`} onboarded={view.management.onboarded} onDismiss={() => controller.dismissOnboarding()} />}<div className="fg-phase-strip">{t("Morning Meeting → Execution → End of Day → Next Morning · 当前 ")}<b>{t(view.management.phase)}</b></div><div className="fg-season-progress" aria-label={t(`已完成 ${model.elapsedDays} / ${model.totalDays} 天`)}><span style={{ width: `${Math.min(100, model.elapsedDays / model.totalDays * 100)}%` }} /></div>
-      <section className="fg-hud" aria-label={t("经营资源")}><article><span className="fg-stat-icon"><Glyph name="wallet" /></span><div><span>{t("可用现金")}</span><strong data-testid="cash" data-value={view.finance.cash}>{t(money(view.finance.cash))}</strong><small>{t("费用按实际执行记账")}</small></div></article><article><span className="fg-stat-icon"><Glyph name="people" /></span><div><span>{t("今日剩余 Labor")}</span><strong>{t(number(model.laborAvailable, 2))} <em>{t("Labor")}</em></strong><small>{t("日容量不结转")}</small></div></article><article><span className="fg-stat-icon fg-stat-icon--water"><Glyph name="drop" /></span><div><span>{t(criticalResource?.type === 'water' ? '水资源库存' : criticalResource?.name || '关键资源')}</span><strong data-testid="water-inventory" data-value={criticalResource?.quantity}>{t(number(criticalResource?.quantity, 1))} <em>{t(criticalResource?.unit === 'm3' ? 'm³' : criticalResource?.unit)}</em></strong><small>{t("用水与应急采购均可追溯")}</small></div></article><article><span className="fg-stat-icon fg-stat-icon--attention"><Glyph name="clock" /></span><div><span>{t("经理注意力")}</span><strong data-testid="attention-remaining" data-value={attention.remaining}>{t(number(attention.remaining, 2))} <em>{t("/ ")}{t(number(attention.dailyBudget, 2))}</em></strong><small>{t("早会固定 −1 · 普通排程免费")}</small></div></article></section>
+      <main className="fg-main"><section className="fg-page-heading"><div><span className="fg-eyebrow">{t(model.scenarioName)}</span><h1>{t(currentTab.label)}<span>{t(tab === 'map' ? '看见农场，做出有依据的选择。' : '每一步选择，都留下可以追溯的记录。')}</span></h1></div><div className="fg-time-control"><div className="fg-date"><Glyph name="calendar" size={19} /><div><strong data-testid="game-date">{t(view.currentDate)}</strong><small>{t("第 ")}{t(model.elapsedDays)}{t(" / ")}{t(model.totalDays)}{t(" 天")}{t(view.ended ? ' · 已结束' : '')}</small></div></div><button className="fg-button fg-button--primary" data-testid="advance-day" disabled={view.ended} onClick={() => run('executeDay')}>{t(view.ended ? '本轮已结束' : { morning: '开始 Execution', execution: '进入 End of Day', end_of_day: 'Next Morning' }[view.management.phase])}<Glyph name="arrow" size={17} /></button></div></section>
+      {tab === 'map' && <Onboarding key={`${view.currentDate}:${view.randomSeed}:${view.management.onboarded}`} onboarded={view.management.onboarded} onDismiss={() => controller.dismissOnboarding()} />}{tab === 'map' && <><div className="fg-phase-strip">{t("Morning Meeting → Execution → End of Day → Next Morning · 当前 ")}<b>{t(view.management.phase)}</b></div><div className="fg-season-progress" aria-label={t(`已完成 ${model.elapsedDays} / ${model.totalDays} 天`)}><span style={{ width: `${Math.min(100, model.elapsedDays / model.totalDays * 100)}%` }} /></div></>}
+      {!['guide', 'knowledge'].includes(tab) && <section className="fg-hud" aria-label={t("经营资源")}><article><span className="fg-stat-icon"><Glyph name="wallet" /></span><div><span>{t("可用现金")}</span><strong data-testid="cash" data-value={view.finance.cash}>{t(money(view.finance.cash))}</strong><small>{t("费用按实际执行记账")}</small></div></article><article><span className="fg-stat-icon"><Glyph name="people" /></span><div><span>{t("今日剩余 Labor")}</span><strong>{t(number(model.laborAvailable, 2))} <em>{t("Labor")}</em></strong><small>{t("日容量不结转")}</small></div></article><article><span className="fg-stat-icon fg-stat-icon--water"><Glyph name="drop" /></span><div><span>{t(criticalResource?.type === 'water' ? '水资源库存' : criticalResource?.name || '关键资源')}</span><strong data-testid="water-inventory" data-value={criticalResource?.quantity}>{t(number(criticalResource?.quantity, 1))} <em>{t(criticalResource?.unit === 'm3' ? 'm³' : criticalResource?.unit)}</em></strong><small>{t("用水与应急采购均可追溯")}</small></div></article><article><span className="fg-stat-icon fg-stat-icon--attention"><Glyph name="clock" /></span><div><span>{t("经理注意力")}</span><strong data-testid="attention-remaining" data-value={attention.remaining}>{t(number(attention.remaining, 2))} <em>{t("/ ")}{t(number(attention.dailyBudget, 2))}</em></strong><small>{t("早会固定 −1 · 普通排程免费")}</small></div></article></section>}
       {t((notice || snapshot.error) && <div className={`fg-feedback fg-feedback--${notice?.type || 'error'}`} data-testid={notice?.type === 'success' ? 'game-status' : 'game-error'} tabIndex={-1} role={notice?.type === 'success' ? 'status' : 'alert'}><Glyph name={notice?.type === 'success' ? 'check' : 'alert'} size={17} /><span>{t(notice?.text || snapshot.error)}</span><button onClick={() => {setNotice(null);controller.clearError();}} aria-label={t("关闭提示")}>{t("×")}</button></div>)}
       {t(storageStatus.state !== 'saved' && storageStatus.message && <div className="fg-storage-warning" role="status">{t(storageStatus.message)}</div>)}
       {t(view.ended && tab !== 'management' && <div className="fg-end-banner"><div><strong>{t(model.totalDays)}{t(" 天经营已完成")}</strong><p>{t("查看财务、水资源、作业偏差与决策记录，复盘这一轮。")}</p></div><button className="fg-button fg-button--primary" onClick={() => navigate('management')}>{t("查看经营复盘")}<Glyph name="arrow" size={16} /></button></div>)}
-      {t((tab === 'map' || tab === 'units') && <div className="fg-map-layout"><section className="fg-panel fg-map-panel"><div className="fg-panel-heading"><div><span className="fg-eyebrow">{t(tab === 'map' ? 'FARM OVERVIEW' : 'PRODUCTION UNITS')}</span><h2>{t(tab === 'map' ? '农场全景' : '生产单元总览')}<span className="fg-count">{t(filteredUnits.length)}{t(" 个单元")}</span></h2></div><div className="fg-map-date"><span>{view.currentDate}</span><small>{t("玩家已知信息")}</small></div></div>
-        <p className="fb-freshness-help">{t('信息新鲜度＝上次有效信息距今多久。水分信息来自传感器、巡查等；作物与设备信息来自现场观察。')}</p><div className="fb-actions"><button className="fg-button fg-button--secondary" data-testid="view-table" onClick={() => setSpatial(false)}>{t("Table View")}</button><button className="fg-button fg-button--secondary" data-testid="view-spatial" onClick={() => setSpatial(true)}>{t("Spatial View")}</button>{t(spatial && ['water', 'crop', 'freshness', 'equipment'].map((layer) => <label key={layer}><input type="checkbox" checked={layers.includes(layer)} onChange={(e) => setLayers(e.target.checked ? [...layers, layer] : layers.filter((l) => l !== layer))} />{t({ water: 'Water Risk', crop: 'Crop Status', freshness: 'Information Freshness', equipment: 'Irrigation Equipment' }[layer])}</label>))}</div><div className="fg-map-toolbar">{spatial && <div className="fg-layer-toggle" aria-label={t("地图图层")}>{t([{ id: 'water', label: '水分与风险' }, { id: 'tasks', label: '作业与决策' }, { id: 'freshness', label: '信息新鲜度' }].map((layer) => <button key={layer.id} className={overlay === layer.id ? 'is-active' : ''} onClick={() => setOverlay(layer.id)}>{t(layer.label)}</button>))}</div>}<div className="fg-map-filters"><label><span className="fg-sr-only">{t("分区筛选")}</span><select data-testid="cluster-filter" value={clusterFilter} onChange={(event) => {setClusterFilter(event.target.value);setSelectedIds(ids => ids.filter(id => model.units.some(u => u.id === id && (event.target.value === 'all' || u.clusterId === event.target.value) && (varietyFilter === 'all' || u.varietyId === varietyFilter))));setPlanning(null);}}><option value="all">{t("全部分区")}</option>{t(clusterOptions.map((id) => <option key={id} value={id}>{t(id)}</option>))}</select></label><label><span className="fg-sr-only">{t("品种筛选")}</span><select data-testid="variety-filter" value={varietyFilter} onChange={(event) => {setVarietyFilter(event.target.value);setSelectedIds(ids => ids.filter(id => model.units.some(u => u.id === id && (clusterFilter === 'all' || u.clusterId === clusterFilter) && (event.target.value === 'all' || u.varietyId === event.target.value))));setPlanning(null);}}><option value="all">{t("全部品种")}</option>{t(varietyOptions.map(([id, label]) => <option key={id} value={id}>{t(label)}</option>))}</select></label></div></div>
-        {t(!spatial ? <FarmStatusTable units={filteredUnits} selectedId={selectedUnit?.id} onSelect={setSelectedUnitId} selectedIds={selectedIds} onToggle={toggleUnit} /> : tab === 'map' ? <FarmMap layers={layers} units={model.units} clusters={model.clusters} selectedUnitId={selectedUnit?.id} onSelect={setSelectedUnitId} selectedIds={selectedIds} onToggle={toggleUnit} overlay={overlay} clusterFilter={clusterFilter} varietyFilter={varietyFilter} /> : <div className="fg-units-grid">{t(filteredUnits.map((unit) => <div className="fg-unit-select-tile" key={unit.id}><label><input type="checkbox" data-testid={`card-select-${unit.id}`} checked={selectedIds.includes(unit.id)} onChange={() => toggleUnit(unit.id)} />{t("选择")} {unit.id}</label><button className={`fg-unit-tile ${unit.id === selectedUnit?.id ? 'is-selected' : ''}`} data-testid={`unit-card-${unit.id}`} onClick={() => setSelectedUnitId(unit.id)}><div><strong>{t(unit.id)}</strong><Badge status={unit.water.status} /></div><span>{t(unit.varietyName)}</span><small>{t(unit.clusterId)}{t(" · ")}{t(number(unit.area.value, 2))} {t(unit.area.unit)}</small><div className="fg-unit-tile-bottom"><span>{t(unit.stage.label)}</span><b>{t(unit.risk.label)}</b></div></button></div>))}</div>)}
-        <UnitSelection units={filteredUnits} selectedIds={selectedIds} onToggle={toggleUnit} onClear={() => {setSelectedIds([]);setPlanning(null);}} onPlan={() => planUnits(selectedIds)} enabled={view.management.phase === 'morning' && !view.ended} />
-        {planning && <TaskPlanner key={`${view.currentDate}:${planning.ids.join(',')}:${planning.action}:${planning.version}`} management={view.management} controller={controller} run={run} unitIds={planning.ids} initialAction={planning.action} onViewTask={id => navigate('operations', id)} openPurchase={() => setDialog('purchase')} />}
-        </section><UnitPanel unit={selectedUnit} view={view} run={run} navigate={navigate} selectedIds={selectedIds} onPlan={planUnits} /></div>)}
+      <div hidden={tab !== 'map'}><FarmWorkspace key={session} view={view} model={model} controller={controller} run={run} navigate={navigate} selectedUnit={selectedUnit} selectedIds={selectedIds} onSelect={setSelectedUnitId} onToggle={toggleUnit} onClear={() => setSelectedIds([])} filteredUnits={filteredUnits}
+        clusterFilter={clusterFilter} setClusterFilter={setClusterFilter} varietyFilter={varietyFilter} setVarietyFilter={setVarietyFilter} spatial={spatial} setSpatial={setSpatial} layers={layers} setLayers={setLayers} overlay={overlay} setOverlay={setOverlay} draft={draft} setDraft={setDraft} showCalendar={showCalendar} setShowCalendar={setShowCalendar}
+        focusedOperationId={focusedOperationId} renderOperation={op => <OperationCard key={`${op.id}:${view.currentDate}:${op.plannedStart}`} operation={op} view={view} run={run} />} openPurchase={() => setDialog('purchase')}
+        unitDetails={<UnitPanel unit={selectedUnit} view={view} run={run} navigate={navigate} onPlan={planUnits} />} /></div>
       {tab === 'guide' && <GameplayGuide navigate={navigate} />}
       {tab === 'knowledge' && <CropEncyclopedia key={knowledgeUnitId || 'general'} navigate={navigate} unit={model.units.find(unit => unit.id === knowledgeUnitId)} activeCropIds={[...new Set(view.crops.map(crop => crop.cropPackId))]} />}
-      {t(tab === 'today' && <><Today view={view} model={model} navigate={navigate} onPlan={(id, action) => {navigate('map', id);planUnits([id], action);}} /><DailyFeedback management={view.management} onSelectUnit={id => navigate('map', id)} onViewTask={id => navigate('operations', id)} /><details className="fg-fold"><summary>{t('Water Stress Trend')}</summary><WaterTrend management={view.management} /></details></>)}
       {tab === 'decisions' && <div className="fg-decisions-list"><div className="fg-section-intro"><h2>{t('今天需要你关注')}</h2><p>{t('不同角色可能基于不同来源形成观点。所有可见证据均已送达，计划仍需经过资源检查。')}</p></div>{view.decisionCases.filter(d => ['open', 'delayed', 'delegated', 'awaiting_approval', 'investigating'].includes(d.status)).toSorted((a, b) => (b.id === focusedCaseId ? 1 : 0) - (a.id === focusedCaseId ? 1 : 0) || b.openedAt.localeCompare(a.openedAt)).map(d => <DecisionCard key={`${d.id}:${view.currentDate}:${d.status}`} decision={d} view={view} run={run} openPurchase={() => setDialog('purchase')} controller={controller} focused={d.id === focusedCaseId} />)}<DecisionHistory management={view.management} run={run} controller={controller} openPurchase={() => setDialog('purchase')} /><details className="fg-fold"><summary>{t('已处理场景决策')}</summary>{view.decisionCases.filter(d => !['open', 'delayed', 'delegated', 'awaiting_approval', 'investigating'].includes(d.status)).map(d => <DecisionCard key={`${d.id}:${view.currentDate}:${d.status}`} decision={d} view={view} run={run} openPurchase={() => setDialog('purchase')} controller={controller} focused={d.id === focusedCaseId} />)}</details></div>}
-      {tab === 'operations' && <div className="fg-operations-list">{!view.ended && <TaskPlanner key={view.currentDate} management={view.management} controller={controller} run={run} initialUnitId={selectedUnit?.id} onViewTask={id => navigate('operations', id)} openPurchase={() => setDialog('purchase')} />}<div className="fg-section-intro"><h2>{t('待执行与受阻任务')}</h2><label>{t('按生产单元筛选')}<select data-testid="operation-unit-filter" value={operationUnitFilter} onChange={event => setOperationUnitFilter(event.target.value)}><option value="all">{t('全部生产单元')}</option>{model.units.map(unit => <option key={unit.id} value={unit.id}>{unit.id}</option>)}</select></label></div>{view.operations.filter(op => ['scheduled', 'blocked'].includes(op.executionStatus) && (operationUnitFilter === 'all' || op.productionUnitIds.includes(operationUnitFilter))).toSorted((a, b) => a.plannedStart.localeCompare(b.plannedStart)).map(op => <OperationCard key={`${op.id}:${view.currentDate}:${op.plannedStart}`} operation={op} view={view} run={run} />)}<details className="fg-fold"><summary>{t('日历与传感器')}</summary><Calendars management={view.management} /><SensorDistribution management={view.management} /></details><details className="fg-fold"><summary>{t('已完成与取消的任务')} · {view.operations.filter(op => !['scheduled', 'blocked'].includes(op.executionStatus)).length}</summary>{view.operations.filter(op => !['scheduled', 'blocked'].includes(op.executionStatus) && (operationUnitFilter === 'all' || op.productionUnitIds.includes(operationUnitFilter))).toReversed().map(op => <OperationCard key={`${op.id}:${view.currentDate}`} operation={op} view={view} run={run} />)}</details></div>}
-      {t(tab === 'management' && <><Management view={view} model={model} run={run} storageStatus={storageStatus} openPurchase={() => setDialog('purchase')} openRestart={() => setDialog('restart')} /><WaterTrend management={view.management} /><CropGuide units={view.management.units} /><DecisionHistory management={view.management} run={run} /></>)}
-      {t(!view.ended && <KnownTimeline model={model} navigate={navigate} />)}
+      {tab === 'management' && <><Management view={view} model={model} run={run} storageStatus={storageStatus} openPurchase={() => setDialog('purchase')} openRestart={() => setDialog('restart')} /><h2>{t('农场资产')}</h2><SensorDistribution management={view.management} onRelocate={sensorId => {setDraft(previous => ({ ...previous, base: 'sensor_relocation', extras: [], sensorId }));setTab('map');requestAnimationFrame(() => document.getElementById('inline-task-planner')?.scrollIntoView({ block: 'start' }));}} /></>}
       <footer className="fg-main-footer"><span>{t("Sentinel Farm Simulation · 示例训练场景")}</span><span>{t("依据可见证据决策 · 本地自动保存")}</span></footer>
       </main></div>
     {t(dialog === 'purchase' && <PurchaseDialog view={view} model={model} run={run} close={() => setDialog(null)} />)}{t(dialog === 'restart' && <RestartDialog view={view} model={model} run={run} close={() => setDialog(null)} />)}

@@ -24,17 +24,17 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
     await page.setViewport({ width: 1440, height: 1000 });
-    const click = async id => { const sel = `[data-testid="${id}"]`; await page.waitForSelector(sel); await page.$eval(sel, el => el.scrollIntoView({ block: 'center' })); await page.click(sel); };
+    const click = async id => { const sel = `[data-testid="${id}"]`; await page.waitForSelector(sel); await page.$eval(sel, el => { for (let p = el.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(el.tagName === 'SUMMARY' && p === el.parentElement)) p.open = true; el.scrollIntoView({ block: 'center' }); }); await page.click(sel); };
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
     await page.goto(`${origin}${base}#/game`, { waitUntil: 'networkidle0' });
     await click('onboarding-dismiss');
     await click('tab-map'); await page.waitForSelector('[data-testid="farm-status-table"]');
-    for (const tab of ['map', 'today', 'operations', 'units', 'decisions', 'management', 'guide', 'knowledge']) await click(`tab-${tab}`);
+    for (const tab of ['map', 'decisions', 'management', 'guide', 'knowledge']) await click(`tab-${tab}`);
     await click('locale-en'); const before = await checkpoint();
     await page.reload({ waitUntil: 'networkidle0' }); assert.deepEqual(await checkpoint(), before);
     assert.equal(await page.$eval('[data-testid="game-root"]', el => el.dataset.locale), 'en');
-    await click('tab-operations'); await click('task-confirm');
+    await click('tab-map'); await click('task-confirm');
     await page.select('[data-testid="task-unit"]', 'PU-02'); await page.select('[data-testid="task-unit"]', 'PU-01');
     const route = page.url(), id = (await checkpoint()).state.scheduledOperations[0].id;
     await click(`duplicate-view-${id}`); assert.equal(page.url(), route, 'duplicate task navigation preserves #/game on Pages');
@@ -57,6 +57,6 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
     await page.waitForFunction(() => [...document.images].every(img => img.complete && img.naturalWidth > 0));
     const info = await (await fetch(`${origin}${base}build-info.json`)).json(); assert.match(info.commit, /^[a-f0-9]{40}$/);
     assert.deepEqual(errors, [], 'browser runtime errors'); assert.deepEqual(failures, [], 'missing assets or routes');
-    console.log('PASS: production Pages artifact, eight game views, real scheduling/execution, hash reload, exact save restore, language persistence, navigation to legacy app, nine old routes and images, build provenance.');
+    console.log('PASS: production Pages artifact, five game destinations, real scheduling/execution, hash reload, exact save restore, language persistence, navigation to legacy app, nine old routes and images, build provenance.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

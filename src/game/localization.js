@@ -1,10 +1,11 @@
 import { GAME_TEXT, GAME_LABELS, GAME_MESSAGES, GAME_MIXED } from './gameText.js';
 
+import { WORKSPACE_TEXT } from './workspaceText.js';
 import { GROWTH_STAGES } from '../domain/growthStages.js';
 
 const entries = new Map();
 const add = (source, zh, en) => entries.set(source.toLowerCase(), { zh, en });
-for (const [zh, en] of GAME_TEXT) { add(zh, zh, en); add(en, zh, en); }
+for (const [zh, en] of [...GAME_TEXT, ...WORKSPACE_TEXT]) { add(zh, zh, en); add(en, zh, en); }
 for (const [source, zh, en = source] of [...GAME_LABELS, ...GAME_MESSAGES, ...GAME_MIXED]) {
   add(source, zh, en); add(zh, zh, en); add(en, zh, en);
 }
