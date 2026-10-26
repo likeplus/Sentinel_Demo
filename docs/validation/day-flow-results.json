@@ -1,0 +1,68 @@
+{
+  "baseline": "7985b7a703356650ac994ab18543af0fee141503",
+  "date": "2026-10-26",
+  "unitTests": {
+    "files": 15,
+    "passed": 151,
+    "durationSeconds": 76.6
+  },
+  "browser": {
+    "animationMs": 569,
+    "day": "2026-03-09",
+    "frozenObservation": "inspection:TASK-3:PU-12",
+    "initialInspectionText": "PU-12Bluecrop (训练)转熟期21 / 100信息更新: 当天工人未见病虫害迹象信息更新: 当天90%2026-03-01现场人员正常信息更新: 当天长期可靠度 90%—无有效覆盖",
+    "checks": [
+      "synchronized selection",
+      "right resources",
+      "sticky toolbar",
+      "single execution and 500ms transition",
+      "pending decision gate",
+      "waiting delegation",
+      "approval gate",
+      "explicit future review",
+      "review due again",
+      "lab source and timing",
+      "related chart",
+      "no extrapolated points",
+      "independent personnel capacity",
+      "reload",
+      "seven guide modules",
+      "bilingual",
+      "390px",
+      "reduced motion"
+    ],
+    "errors": [],
+    "failedExternalFontRequests": [
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
+        "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+      },
+      {
+        "url": "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined",
+        "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
+        "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+      },
+      {
+        "url": "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined",
+        "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+      }
+    ]
+  },
+  "fullHistory": {
+    "phaseClicks": 56,
+    "days": 28,
+    "operations": 112,
+    "storedChars": 1281408,
+    "utf16Bytes": 2562816,
+    "historicalDays": 29,
+    "errors": []
+  },
+  "lint": {
+    "newDiagnostics": 0,
+    "existingErrors": 22,
+    "existingWarnings": 8
+  }
+}

@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs/promises');
 const assert = require('node:assert/strict');
@@ -19,7 +20,7 @@ const puppeteer = require('puppeteer');
     await page.setViewport({ width: 1440, height: 1000 });
     await page.goto('http://127.0.0.1:5195/game', { waitUntil: 'networkidle0' });
     const sel = id => `[data-testid="${id}"]`;
-    const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), element => { for (let p = element.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(element.tagName === 'SUMMARY' && p === element.parentElement)) p.open = true; element.scrollIntoView({ block: 'center' }); }); await page.click(sel(id)); };
+    const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), element => { for (let p = element.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(element.tagName === 'SUMMARY' && p === element.parentElement)) p.open = true; element.scrollIntoView({ block: 'center' }); }); await page.click(sel(id)); await idle(page); };
     const raw = () => page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'));
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await raw()).checkpoint;

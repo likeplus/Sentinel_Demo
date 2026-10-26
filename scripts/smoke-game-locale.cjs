@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 const { spawn } = require('node:child_process');
 const puppeteer = require('puppeteer');
 const fs = require('node:fs/promises');
@@ -15,7 +16,7 @@ const previews = '/tmp/sentinel-game-localization/previews';
     const page = await browser.newPage(), errors = [], audit = {};
     page.on('pageerror', e => errors.push(e.message)); await page.setViewport({ width: 1440, height: 1050 });
     await page.goto('http://127.0.0.1:5193/game', { waitUntil: 'networkidle0' });
-    const click = async id => { const s = `[data-testid="${id}"]`; await page.waitForSelector(s); await page.$eval(s, e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await page.click(s); };
+    const click = async id => { const s = `[data-testid="${id}"]`; await page.waitForSelector(s); await page.$eval(s, e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await page.click(s); await idle(page); };
     const body = () => page.$eval('[data-testid="game-root"]', e => e.innerText);
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
@@ -30,7 +31,7 @@ const previews = '/tmp/sentinel-game-localization/previews';
     await click('table-unit-PU-05'); await page.select('[data-testid="cluster-filter"]', 'CL-1');
     assert.notEqual(await page.$eval('[data-testid="selected-unit"]', e => e.dataset.unitId), 'PU-05', 'details remain inside the visible filter');
     await page.select('[data-testid="cluster-filter"]', 'all');
-    for (const tab of ['guide', 'knowledge']) { await click(`tab-${tab}`); if (tab === 'guide') { await page.evaluate(() => document.querySelectorAll('details').forEach(d => {d.open = true;})); assert.match(await body(), /信息新鲜度：这些信息是什么时候获得的/); assert.match(await body(), /例如昨天巡查、今天传感器更新/); } assert.deepEqual(await checkpoint(), initial, 'reading guides does not change time, resources or game state'); }
+    for (const tab of ['guide', 'knowledge']) { await click(`tab-${tab}`); if (tab === 'guide') { await page.evaluate(() => document.querySelectorAll('details').forEach(d => {d.open = true;})); assert.match(await body(), /这些信息是什么时候获得的/); assert.match(await body(), /例如昨天巡查、今天传感器更新/); } assert.deepEqual(await checkpoint(), initial, 'reading guides does not change time, resources or game state'); }
     await click('locale-en'); assert.deepEqual(await checkpoint(), initial, 'switching language does not mutate game state');
     for (const locale of ['en', 'zh']) {
       await click(`locale-${locale}`); audit[locale] = {};

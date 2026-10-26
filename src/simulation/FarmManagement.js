@@ -1,3 +1,6 @@
+import { latestWaterEvidence } from '../domain/managementEvidence.js';
+import { pendingDecisionItems } from '../domain/decisionReadiness.js';
+import { operationUsage } from '../domain/operationUsage.js';
 import { GROWTH_STAGES } from '../domain/growthStages.js';
 import { addDays, clone, dateMs, daysBetween } from '../domain/validation.js';
 import { createOperation, detectResourceConflicts } from '../domain/operation.js';
@@ -115,10 +118,15 @@ export function farmCapacity(s, date, excludeId = null) {
   const onDate = tasks(s).filter(t => t.id !== excludeId && (t.plannedStart === date || (date === s.currentDate && t.plannedStart < date && ['scheduled', 'blocked'].includes(t.executionStatus))) && active(t));
   const crewCapacity = s.farmState.resources.filter(r => r.type === 'crew').reduce((sum, r) => sum + availableCapacity(r, date), 0);
   const labor = m.laborAvailability[date] ?? m.dailyLabor * crewCapacity;
-  const reserved = onDate.reduce((sum, task) => sum + task.labor, 0);
+  const reserved = onDate.reduce((sum, task) => sum + operationUsage(task, s.farmState.resources, m.dailyLabor).labor, 0);
+  const personnel = s.farmState.resources.filter(r => r.type === 'person').map(r => {
+    const reserved = onDate.reduce((sum, task) => sum + (operationUsage(task, s.farmState.resources, m.dailyLabor).personnel.find(p => p.resourceId === r.id)?.days || 0), 0);
+    const available = availableCapacity(r, date);
+    return { resourceId: r.id, name: r.name, available, reserved, remaining: available - reserved };
+  });
   const attention = onDate.reduce((sum, task) => sum + task.attention, 0);
   const decisions = m.decisions.filter(d => d.date === date && d.maker === 'Manager').reduce((sum, d) => sum + d.attentionCost, 0);
-  return { date, labor, reserved, remaining: labor - reserved,
+  return { date, labor, reserved, remaining: labor - reserved, personnel,
     attentionAvailable: date === s.currentDate ? m.attentionRemaining + onDate.filter(t => t.executionStatus === 'completed').reduce((sum, t) => sum + t.attention, 0)
       : Math.max(0, m.dailyAttention - 1 - decisions), attentionReserved: attention,
     waterRemaining: resource(s, 'water').quantity - pending(s).filter(t => t.id !== excludeId).reduce((sum, t) => sum + t.water, 0) };
@@ -140,7 +148,7 @@ export function scheduleFarmTask(s, input, replaceId = null, prepareOnly = false
   if (duplicates.length) return fail('duplicate', 'This action is already scheduled for this Production Unit on this date.', { taskIds: duplicates.map(t => t.id) });
   let costs = input.actions.reduce((sum, a) => ({ labor: sum.labor + FARM_ACTIONS[a].labor,
     attention: sum.attention + FARM_ACTIONS[a].attention, water: sum.water + (FARM_ACTIONS[a].water || 0) }), { labor: 0, attention: 0, water: 0 });
-  if (input.plan) costs = { labor: input.plan.plannedDurationDays * m.dailyLabor, attention: costs.attention, water: input.plan.resourceQuantities?.water || 0 };
+  if (input.plan) costs = { labor: operationUsage(input.plan, s.farmState.resources, m.dailyLabor).labor, attention: costs.attention, water: input.plan.resourceQuantities?.water || 0 };
   const capacity = farmCapacity(s, input.date, replaceId);
   if (costs.labor > capacity.remaining || costs.attention + capacity.attentionReserved > capacity.attentionAvailable || costs.water > capacity.waterRemaining)
     return fail('capacity', 'Resource Conflict: insufficient Labor, Manager Attention, or reserved water.', { capacity, required: costs });
@@ -210,6 +218,8 @@ export function cancelFarmTask(s, id) {
 export function executeFarmDay(s, packs, random) {
   const m = s.management;
   if (m.phase !== 'morning' || s.ended) return fail('phase', 'Execution begins once after Morning Meeting.');
+  const unresolved = pendingDecisionItems(s.openDecisionCases, m.decisions, s.currentDate);
+  if (unresolved.length) return fail('decision_required', 'Make a choice for every pending decision before execution.', { decisionIds: unresolved.map(d => d.id) });
   const today = pending(s).filter(t => t.plannedStart <= s.currentDate).sort((a, b) => (b.actions.includes('repair') ? 1 : 0) - (a.actions.includes('repair') ? 1 : 0));
   const cap = farmCapacity(s, s.currentDate);
   if (cap.remaining < 0 || cap.attentionReserved > cap.attentionAvailable) return fail('capacity', 'Resource Conflict: adjust today’s tasks before execution.');
@@ -303,7 +313,7 @@ export function executeFarmDay(s, packs, random) {
           m.estimates[unitId].value = to;
           m.estimates[unitId].range = from === null ? [0, 100] : m.estimates[unitId].range.map(v => Math.round(clamp(v - water * 1.5)));
           m.expectedImpacts.push({ taskId: task.id, unitId: unitId, action, from, to, water: amount, efficiency });
-          result.message = `Expected Water Stress ${from} → ${to}; ${amount} m³ used. Formal update next morning.`;
+          result.message = `Expected Water Stress ${from} → ${to}; ${amount} m³ used. Verify with later observations.`;
         }
       } else if (action === 'spraying') {
         Object.assign(crop, packs[crop.cropPackId].applyOperation(crop, { id: `${task.id}:spraying`, type: 'spraying', actualStart: s.currentDate }));
@@ -320,7 +330,7 @@ export function executeFarmDay(s, packs, random) {
       s.outcomes.push(outcome); task.outcomeIds.push(outcome.id);
     }
     }
-    m.lastResults.push({ taskId: task.id, unitId: task.unitId, status: task.executionStatus, labor: task.labor, results: clone(task.results) });
+    m.lastResults.push({ taskId: task.id, unitId: task.unitId, status: task.executionStatus, labor: operationUsage(task, s.farmState.resources, m.dailyLabor).labor, personnel: operationUsage(task, s.farmState.resources, m.dailyLabor).personnel, results: clone(task.results) });
     const originalCase = s.openDecisionCases.find(d => d.id === task.sourceId);
     if (originalCase) { originalCase.outcomeIds.push(...task.outcomeIds); originalCase.status = task.executionStatus === 'failed' ? 'open' : task.actions.some(inspection) ? 'investigating' : 'resolved'; }
     if (task.sourceId) {
@@ -352,9 +362,8 @@ export function farmManagementView(s) {
   const units = s.farmState.productionUnits.map(unit => {
     const reports = observations.filter(o => o.productionUnitId === unit.id && o.domain === 'crop_equipment').sort((a, b) => b.observedAt.localeCompare(a.observedAt));
     const report = reports[0] || null;
-    const estimate = m.estimates[unit.id];
     return { id: unit.id, name: unit.name, area: unit.area, clusterId: unit.clusterId, geometry: unit.geometry,
-      water: { ...clone(estimate), provisional: m.phase !== 'morning' && m.expectedImpacts.some(impact => impact.unitId === unit.id) }, cropStatus: report?.cropCondition || 'Unknown',
+      water: latestWaterEvidence(observations, unit.id, s.currentDate), cropStatus: report?.cropCondition || 'Unknown',
       cropFreshness: report ? daysBetween(report.observedAt.slice(0, 10), s.currentDate) : 99,
       equipment: clone(m.equipment[unit.id]), sensors: m.sensors.filter(sensor => sensor.location === unit.id),
       latestObservation: latestFor(s, unit.id, 'waterStress'), latestInspection: report,
@@ -362,7 +371,7 @@ export function farmManagementView(s) {
       growthStage: latestFor(s, unit.id, 'stage')?.value || null, scheduledTasks: pending(s).filter(t => t.productionUnitIds.includes(unit.id)) };
   });
   return clone({ onboarded: m.onboarded || false, phase: m.phase, currentDate: s.currentDate, endDate: addDays(m.endDate, -1), ended: s.ended, units,
-    dailyLabor: m.dailyLabor, sensors: m.sensors, tasks: tasks(s), observations: observations.filter(o => o.domain), decisions: m.decisions,
+    dailyLabor: m.dailyLabor, resourceDefinitions: s.farmState.resources.map(({id,type,name}) => ({id,type,name})), sensors: m.sensors, tasks: tasks(s), observations: observations.filter(o => o.domain || o.variable === 'waterStress'), pendingDecisions: pendingDecisionItems(s.openDecisionCases, m.decisions, s.currentDate), decisions: m.decisions,
     history: m.history, trend: m.trend, weather: m.weather, expectedImpacts: m.expectedImpacts, lastResults: m.lastResults,
     resources: { labor: farmCapacity(s, s.currentDate), attention: m.attentionRemaining, dailyAttention: m.dailyAttention,
       attentionReserved: pending(s).filter(t => t.plannedStart === s.currentDate).reduce((sum, t) => sum + t.attention, 0), water: resource(s, 'water').quantity },

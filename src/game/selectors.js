@@ -36,12 +36,12 @@ export function buildGameModel(view, metadata = {}) {
       confidence: belief?.confidence ?? waterSample?.reliability ?? null, evidenceIds: used.map(sample => sample.id) };
     const feedback = view.management?.units.find(u => u.id === unit.id);
     if (feedback) Object.assign(water, { value: feedback.water.value === null ? null : feedback.water.value / 100,
-      label: feedback.water.value === null ? '水分信息未知' : `Water Stress ${feedback.water.value}${feedback.water.provisional ? '（预计）' : ''}`,
+      label: feedback.water.value === null ? '水分信息未知' : `Water Stress ${feedback.water.value}`,
       confidence: feedback.water.confidence / 100, freshness: feedback.water.freshness, range: feedback.water.range,
-      observedAt: feedback.water.observedAt, source: SOURCES[feedback.water.source] || feedback.water.source,
-      status: feedback.water.value === null ? 'unknown' : feedback.water.freshness > 3 ? 'stale' : 'current' });
+      observedAt: feedback.water.observedAt, source: SOURCES[feedback.water.source] || feedback.water.source, stale: feedback.water.stale, reliability: feedback.water.reliability, observationId: feedback.water.observationId,
+      status: feedback.water.value === null ? 'unknown' : feedback.water.stale ? 'stale' : 'current' });
     const thresholds = metadata.riskThresholds || { high: 0.6, medium: 0.35 };
-    const level = water.value === null ? 'unknown' : water.value >= thresholds.high ? 'high' : water.value >= thresholds.medium ? 'medium' : 'low';
+    const level = water.value === null || water.stale ? 'unknown' : water.value >= thresholds.high ? 'high' : water.value >= thresholds.medium ? 'medium' : 'low';
     return { ...unit, varietyKey, varietyId: crop?.varietyId ?? 'unknown', varietyName: variety?.name || crop?.varietyId || '品种未知',
       cropId: crop?.id ?? null, cropPackId: crop?.cropPackId ?? null, ...(feedback || {}), stage, water,
       risk: { level, label: { unknown: '风险未知', high: '水分风险高', medium: '水分风险中', low: '水分风险低' }[level], status: water.status },
@@ -51,7 +51,7 @@ export function buildGameModel(view, metadata = {}) {
   });
   const clusters = [...new Set(units.map(unit => unit.clusterId))].map(id => ({ id, name: `分区 ${String(id).replace('CL-', '')}` }));
   const varieties = [...new Set(units.map(unit => unit.varietyKey))].map(id => ({ id, name: units.find(unit => unit.varietyKey === id).varietyName }));
-  const activeCases = view.decisionCases.filter(decision => decision.status !== 'resolved');
+  const activeCases = view.decisionCases.filter(decision => view.management ? view.management.pendingDecisions?.some(d => d.id === decision.id) : decision.status !== 'resolved');
   const plannedOperations = view.operations.filter(operation => ['scheduled', 'blocked'].includes(operation.executionStatus));
   const purchases = metadata.emergencySupplies || [];
   const criticalIds = metadata.criticalResourceIds || [];

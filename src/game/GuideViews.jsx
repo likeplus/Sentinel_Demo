@@ -24,7 +24,7 @@ export function GameplayGuide({ navigate, modules = GAMEPLAY_GUIDE_MODULES }) {
   const { locale } = useGameLocale();
   const text = value => value?.[locale] || value?.en || '';
   return <div className="fg-guides" data-testid="gameplay-guide">
-    <section className="fg-guide-intro"><span className="fg-eyebrow">{locale === 'zh' ? '新手入门' : 'GETTING STARTED'}</span><h2>{locale === 'zh' ? '先看清现状，再安排下一步' : 'Understand the farm, then plan your next step'}</h2><p>{locale === 'zh' ? '这些卡片介绍当前玩法、每天怎么操作，以及你可能遇到的取舍。随时回来看，不会消耗资源或推进时间。' : 'These cards explain the current rules, daily actions and likely trade-offs. Return any time; reading uses no resources and advances no time.'}</p></section>
+    <section className="fg-guide-intro"><span className="fg-eyebrow">{locale === 'zh' ? '新手入门' : 'GETTING STARTED'}</span><h2>{locale === 'zh' ? '你是这座农场的经理' : 'You are the farm manager'}</h2><p>{locale === 'zh' ? '先了解职责，再读懂农场、安排工作、处理事件并复盘。阅读不会消耗资源或推进时间。' : 'Understand your responsibilities, read the farm, plan work, handle events and review results. Reading uses no resources and advances no time.'}</p></section>
     {modules.map(module => <section className="fg-guide-module" key={module.id} data-guide-module={module.id}><div className="fg-guide-heading"><h2>{text(module.title)}</h2><p>{text(module.description)}</p></div><div className="fg-guide-cards">{module.cards.map(card => <GuideCard key={card.id} card={card} navigate={navigate} />)}</div></section>)}
   </div>;
 }

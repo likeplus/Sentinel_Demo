@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 // Integrated Phase 2 browser acceptance: actions use the actual /game UI.
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -11,13 +12,13 @@ const key = 'sentinel:farm-game:save:v1';
   const p = await browser.newPage(), errors = [], results = [];
   p.on('pageerror', e => errors.push(e.message)); p.setDefaultTimeout(15000);
   const sel = id => `[data-testid="${id}"]`;
-  const click = async id => { await p.waitForSelector(sel(id)); await p.$eval(sel(id), e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await p.click(sel(id)); };
+  const click = async id => { await p.waitForSelector(sel(id)); await p.$eval(sel(id), e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await p.click(sel(id)); await idle(p); };
   const fill = async (id, value) => p.$eval(sel(id), (el, value) => { const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value); el.dispatchEvent(new Event('input', { bubbles: true })); }, value);
   const save = () => p.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
   const { decodeSave } = await import('../src/game/persistence.js');
   const cp = async () => decodeSave(JSON.stringify(await save())).checkpoint;
   const commit = async id => { const previous = await p.evaluate(key => localStorage.getItem(key), key); await click(id); await p.waitForFunction((key, old) => localStorage.getItem(key) !== old, {}, key, previous); };
-  const phase = async () => { const previous = (await cp()).state.management.phase; await commit('advance-day'); assert.notEqual((await cp()).state.management.phase, previous); };
+  const phase = async () => { await respondToPending(p); const previous = (await cp()).state.management.phase; await commit('advance-day'); assert.notEqual((await cp()).state.management.phase, previous); };
   const day = async () => { const before = (await cp()).state.currentDayIndex; await phase(); await phase(); assert.equal((await cp()).state.currentDayIndex, before + 1); };
   const shot = async name => { await p.screenshot({ path: `${out}/${name}.png`, fullPage: true }); };
   try {

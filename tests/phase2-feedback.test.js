@@ -8,7 +8,7 @@ import { addDays } from '../src/domain/validation.js';
 import { SAVE_KEY, CONTENT_VERSION } from '../src/game/persistence.js';
 const controller = (options = {}) => createGameController({ feedback: true, storage: null, ...options });
 const view = c => c.getSnapshot().view;
-const day = c => { expect(c.advance().accepted).toBe(true); expect(c.advance().accepted).toBe(true); expect(c.advance().accepted).toBe(true); };
+const day = c => { for (const d of view(c).management.pendingDecisions.filter(d => d.kind === 'case')) expect(c.decide(d.id, {type:'no_action'}).accepted).toBe(true); expect(c.advance().accepted).toBe(true); expect(c.advance().accepted).toBe(true); expect(c.advance().accepted).toBe(true); };
 const task = (c, actions, unitId = 'PU-01', date = view(c).currentDate) => c.scheduleTask({ actions, unitId, date });
 const engine = fixture => new SimulationEngine(withPlaytestFeedback(fixture || createYunnanBlueberryFixture()), { blueberry: blueberryPack });
 function storage() { const data = new Map(); return { getItem: k => data.get(k) || null, setItem: (k, v) => data.set(k, v) }; }
@@ -95,7 +95,7 @@ describe('Phase 2 playtest feedback, integrated controller', () => {
     const r = task(c, ['irrigation']); c.advance();
     const after = view(c), impact = after.management.expectedImpacts[0];
     expect(impact.from).toBe(initial); expect(impact.to).toBeLessThan(initial);
-    expect(after.management.units[0].water.provisional).toBe(true);
+    expect(after.management.units[0].water.value).toBe(initial); expect(after.management.units[0].water.provisional).toBe(false);
     expect(after.finance.transactions.filter(t => t.sourceId === r.task.id)).toHaveLength(1);
     c.advance(); c.advance();
     expect(view(c).management.units[0].water.provisional).toBe(false);

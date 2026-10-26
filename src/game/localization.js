@@ -1,11 +1,12 @@
 import { GAME_TEXT, GAME_LABELS, GAME_MESSAGES, GAME_MIXED } from './gameText.js';
 
+import { DAY_FLOW_TEXT } from './dayFlowText.js';
 import { WORKSPACE_TEXT } from './workspaceText.js';
 import { GROWTH_STAGES } from '../domain/growthStages.js';
 
 const entries = new Map();
 const add = (source, zh, en) => entries.set(source.toLowerCase(), { zh, en });
-for (const [zh, en] of [...GAME_TEXT, ...WORKSPACE_TEXT]) { add(zh, zh, en); add(en, zh, en); }
+for (const [zh, en] of [...GAME_TEXT, ...WORKSPACE_TEXT, ...DAY_FLOW_TEXT]) { add(zh, zh, en); add(en, zh, en); }
 for (const [source, zh, en = source] of [...GAME_LABELS, ...GAME_MESSAGES, ...GAME_MIXED]) {
   add(source, zh, en); add(zh, zh, en); add(en, zh, en);
 }
@@ -46,7 +47,7 @@ const templates = [
   [/^Growth \/ 长势: (.+)$/, (m, t) => `长势：${t(m[1])}`],
   [/^Stage \/ 阶段: (.+)$/, (m, t) => `阶段：${t(m[1])}`],
   [/^Crop \+ Equipment inspected; confidence (\d+)%\. Findings enter next Morning Meeting\.$/, m => `作物与设备已巡查；可信度 ${m[1]}%。次日早会处理发现的问题。`],
-  [/^Expected Water Stress (.+?) → (.+?); (.+?) m³ used\. Formal update next morning\.$/, (m, t) => `预计水分胁迫 ${t(m[1])} → ${t(m[2])}；用水 ${m[3]} 立方米。次日早会正式更新。`],
+  [/^Expected Water Stress (.+?) → (.+?); (.+?) m³ used\. (?:Formal update next morning|Verify with later observations)\.$/, (m, t) => `预计水分胁迫 ${t(m[1])} → ${t(m[2])}；用水 ${m[3]} 立方米。等待后续有效观测验证。`],
   [/^(.+?): (.+?) → (.+?)\. First valid update next morning\.$/, m => `${m[1]}：${m[2]} → ${m[3]}。次日早会获得首条有效更新。`],
   [/^Morning Meeting: Manager Attention -1(?:; yesterday’s evidence and results available\.)?$/, () => '早会：经理注意力 −1；可回顾昨日观测和作业结果。'],
   [/^Water stress (.+?), confidence (.+?)%, freshness (.+?)d; equipment (.+?); stage (.+?); sensors (.+?); weather (.+?)°C, rain (.+?)mm, ET (.+?)mm; Labor remaining (.+?); (.+?) scheduled actions\. (.+)$/, (m, t) => `水分胁迫 ${t(m[1])}，可信度 ${m[2]}%，新鲜度 ${m[3]} 天；设备 ${t(m[4])}；阶段 ${t(m[5])}；传感器 ${m[6]} 个；天气 ${m[7]}°C，降雨 ${m[8]} 毫米，蒸散量 ${m[9]} 毫米；剩余劳动力 ${m[10]}；已有作业 ${m[11]} 项。${t(m[12])}`],

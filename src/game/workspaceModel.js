@@ -71,6 +71,7 @@ export function calendarCell(management, unitId, date, mode) {
 export function reservationRows(quote) {
   const c = quote.capacity;
   return [
+    ...(c.personnel || []).map(p => ({ id: p.resourceId, label: "独立维修人员（人员日）", available: p.available, reserved: p.reserved, requested: quote.personnel?.find(item => item.resourceId === p.resourceId)?.days || 0, remaining: p.remaining - (quote.personnel?.find(item => item.resourceId === p.resourceId)?.days || 0) })),
     {
       id: "labor",
       label: "劳动力",

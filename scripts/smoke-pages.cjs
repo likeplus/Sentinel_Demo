@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 // Verify the production artifact on a strict static server without SPA rewrites.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -24,7 +25,7 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
     await page.setViewport({ width: 1440, height: 1000 });
-    const click = async id => { const sel = `[data-testid="${id}"]`; await page.waitForSelector(sel); await page.$eval(sel, el => { for (let p = el.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(el.tagName === 'SUMMARY' && p === el.parentElement)) p.open = true; el.scrollIntoView({ block: 'center' }); }); await page.click(sel); };
+    const click = async id => { const sel = `[data-testid="${id}"]`; await page.waitForSelector(sel); await page.$eval(sel, el => { for (let p = el.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(el.tagName === 'SUMMARY' && p === el.parentElement)) p.open = true; el.scrollIntoView({ block: 'center' }); }); await page.click(sel); await idle(page); };
     const { decodeSave } = await import('../src/game/persistence.js');
     const checkpoint = async () => decodeSave(await page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'))).checkpoint;
     await page.goto(`${origin}${base}#/game`, { waitUntil: 'networkidle0' });

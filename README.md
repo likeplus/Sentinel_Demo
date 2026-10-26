@@ -118,3 +118,5 @@ npm run dev
 最新试玩反馈设计：[Phase 2 阶段知识与日终复盘](docs/10_Phase2_Review_Clarity_Design.md)，包含统一阶段词汇、知识定位、双语状态、温度格式和实际消耗表格；[验收记录](docs/validation/review-clarity-results.md)。
 
 当前主工作台设计与验收：[Phase 2 农场经理主工作台](docs/11_Phase2_Manager_Workspace_Design.md)。下一步业务输入：[蓝莓持续策略问题清单](docs/12_Blueberry_Persistent_Policy_Questions.md)。
+
+最新每日流程、证据与人员分工：[设计说明](docs/13_Phase2_Daily_Workflow_And_Evidence_Design.md) · [验收与截图](docs/validation/day-flow-results.md)。

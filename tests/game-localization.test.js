@@ -37,6 +37,7 @@ describe('Phase 2 interface localization', () => {
     expect(t('zh', d.rationale)).not.toMatch(/Water stress|confidence|freshness|equipment|scheduled actions/);
     const cp = structuredClone(c.getSnapshot());
     const date = cp.view.currentDate;
+    expect(c.resolveDecision(d.id, false).accepted).toBe(true);
     c.scheduleTask({ unitId: 'PU-01', date, actions: ['inspection', 'manual_watering'] }); c.advance();
     const after = c.getSnapshot();
     const before = structuredClone(after);

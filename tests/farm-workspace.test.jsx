@@ -95,10 +95,12 @@ describe("Farm workspace evidence, compatibility and reservations", () => {
     const after = c.getSnapshot().model.units.find((u) => u.id === "PU-05");
     expect(after.latestInspection).toEqual(initial.latestInspection);
     expect(after.water.observedAt).toBe(initial.water.observedAt);
-    expect(after.water.value).toBeLessThan(initial.water.value);
+    expect(after.water.value).toBe(initial.water.value);
+    const impact = view(c).management.expectedImpacts.find(i => i.unitId === "PU-05");
+    expect(impact.to).toBeLessThan(impact.from);
     expect(
       view(c).management.units.find((u) => u.id === "PU-05").water.provisional,
-    ).toBe(true);
+    ).toBe(false);
   });
   it("keeps observations on observation date and actions on plan date, without interpreting temperature as water stress", () => {
     const management = {
