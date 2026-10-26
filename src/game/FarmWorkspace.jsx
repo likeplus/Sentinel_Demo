@@ -1,3 +1,6 @@
+import { operationUsage } from '../domain/operationUsage.js';
+import ResourceOverview from './ResourceOverview.jsx';
+import ReportIdentity from './ReportIdentity.jsx';
 import { useState } from "react";
 import { useGameLocale } from "./GameLocaleContext.js";
 import {
@@ -167,7 +170,7 @@ export default function FarmWorkspace({
                         </button>
                       </td>
                       <td>
-                        {t(o.sourceType)} · {t(o.variable || "作物与设备巡查")}
+                        <ReportIdentity report={o} /> · {t(o.variable || "作物与设备巡查")}
                       </td>
                       <td>{o.observedAt.slice(0, 10)}</td>
                       <td>{o.availableAt.slice(0, 10)}</td>
@@ -375,6 +378,7 @@ export default function FarmWorkspace({
         </details>
         <WaterTrend
           management={m}
+          observations={view.observations}
           selectedIds={selectedIds}
           focusedId={selectedUnit?.id}
         />
@@ -384,6 +388,8 @@ export default function FarmWorkspace({
         data-phase={m.phase}
         data-testid="farm-planning-column"
       >
+        <ResourceOverview view={view} model={model} />
+        <section className="fg-panel fg-right-selection"><UnitSelection side="right" units={filteredUnits} selectedIds={selectedIds} onToggle={onToggle} onClear={onClear} onPlan={focusPlanner} enabled={m.phase === 'morning' && !view.ended} /></section>
         <section className="fg-panel" data-testid="pending-decisions">
           <h2>
             {t("待处理决策")} ·{" "}
@@ -459,7 +465,7 @@ export default function FarmWorkspace({
             >
               <thead>
                 <tr>
-                  {["Production Unit", "日期", "Action", "Labor", "Status"].map(
+                  {["Production Unit", "日期", "Action", "执行人员", "Status"].map(
                     (h) => (
                       <th key={h}>{t(h)}</th>
                     ),
@@ -479,7 +485,7 @@ export default function FarmWorkspace({
                         {op.actions.map((a) => t(a)).join(" + ")}
                       </button>
                     </td>
-                    <td>{op.labor}</td>
+                    <td>{operationUsage(op, view.resources, m.dailyLabor).personnel.map(p => <span className="fg-task-person" key={p.resourceId}>{t('独立维修人员')} {p.days} {t('人员日')}</span>)}{operationUsage(op, view.resources, m.dailyLabor).labor > 0 && <span className="fg-task-person">{t('田间班组劳动力')} {operationUsage(op, view.resources, m.dailyLabor).labor}</span>}{op.attention > 0 && <span className="fg-task-person">{t('经理注意力')} {op.attention}</span>}</td>
                     <td>{t(op.executionStatus)}</td>
                   </tr>
                 ))}

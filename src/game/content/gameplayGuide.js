@@ -1,48 +1,297 @@
 const text = (zh, en) => ({ zh, en });
+const card = (id, zh, en, bodyZh, bodyEn, items = [], target = "map") => ({
+  id,
+  title: text(zh, en),
+  body: text(bodyZh, bodyEn),
+  items: items.map(([zh, en]) => text(zh, en)),
+  target,
+  link: text("前往操作", "Open workspace"),
+});
 
-/** Add a module/card here to extend onboarding without changing the renderer. */
+export const DAILY_BRIEFING = {
+  title: text("先看农场，再安排工作", "Observe the farm, then arrange work"),
+  body: text(
+    "早会查看左侧状态、报告日期和已有任务，在右侧分配人员与资源。处理所有待表态事件后开始执行；日终核对实际结果，次日再调整。",
+    "At the morning meeting, review conditions, report dates and existing plans on the left; allocate people and resources on the right. Address every pending decision before execution, review actual results, then adjust next morning.",
+  ),
+  reminder: text(
+    "信息陈旧不代表安全，作业完成不代表问题已经解决。",
+    "Old information does not confirm safety; completed work does not confirm recovery.",
+  ),
+  loop: text(
+    "观察 → 判断 → 安排 → 执行 → 复盘 → 次日早会",
+    "Observe → Assess → Plan → Execute → Review → Next morning",
+  ),
+};
+
+// Shared management modules; crop-specific knowledge remains in crop packs/cards.
 export const GAMEPLAY_GUIDE_MODULES = [
   {
-    id: 'daily-management', title: text('每天怎么经营', 'Daily farm management'),
-    description: text('你扮演农场经理：在有限的信息、人力和注意力下，决定先了解哪里、先处理什么，以及把工作安排在哪一天。', 'You are the farm manager. With limited information, labor and attention, decide where to investigate, what to prioritize, and when work should happen.'),
+    id: "manager",
+    title: text("你要管理什么", "Your role as farm manager"),
+    description: text(
+      "在有限的信息、人员、设备和资源下，决定哪里需要关注、先做什么，以及哪些工作可以等待。",
+      "With limited information, people, equipment and resources, decide what needs attention, what comes first and what can wait.",
+    ),
     cards: [
-      { id: 'first-day', title: text('第一次试玩：按这六步开始', 'Your first day: six steps'), ordered: true, items: [
-        text('在农场总览左侧回顾天气、各单元状态、信息更新时间与水分趋势；需要时打开表格日历，查看过去记录和未来任务。', 'Review weather, unit conditions, evidence age and water trends on the left of Farm overview. Show the table calendar to review past records and future plans.'),
-        text('选择最值得关注的单元。信息不足时先巡查，风险明确时考虑直接处理。', 'Select a unit that needs attention. Inspect when information is uncertain; act when risk is clear.'),
-        text('在表格、表格下方或地图选择一个或多个单元，在右侧安排同一任务。日期、作业和班组会保留；确认前核对本次需求与排程后剩余容量。', 'Select one or more units in the table, below it or on the map, then plan on the right. Date, action and crew stay in the draft. Check required and remaining capacity before confirming.'),
-        text('点击“开始执行”。执行后可查看新发现与结果，但不能重新打开当天排程。', 'Start execution. Review findings and results; today’s scheduling window stays closed.'),
-        text('执行后自动停在日终复盘，无需再点一次。比较计划与实际：完成了什么、哪里受阻、补水预计有何影响。', 'Execution automatically stops at end-of-day review. Compare plans with results: completed and blocked tasks, and expected watering effects.'),
-        text('进入次日早会，结合天气、传感器更新和昨日结果，重新安排下一天。', 'Enter the next morning meeting and replan using weather, sensor updates and yesterday’s results.'),
-      ], target: 'map', link: text('查看农场总览', 'Open farm overview') },
-      { id: 'meeting', title: text('早会是唯一正式排程窗口', 'The morning meeting is the scheduling window'), body: text('每天按照“早会 → 执行 → 日终复盘 → 次日早会”推进。执行和复盘阶段可以观察结果；新发现的问题留到次日早会处理。', 'Each day moves through meeting → execution → end-of-day review → next morning. Review results during execution and review; new issues wait until the next meeting.'), items: [text('早会回顾昨日观测、作业结果、设备和未来任务，再安排今天或未来日期。', 'Review observations, results, equipment and future plans, then schedule today or later.'), text('尚未执行的任务可保留、改期或取消；取消释放预约，不会生成观测。', 'Keep, reschedule or cancel unexecuted tasks. Cancellation releases reservations and generates no observation.')], target: 'map', link: text('查看主工作台', 'Open workspace') },
-      { id: 'resources', title: text('劳动力与经理注意力不是一回事', 'Labor and attention are different resources'), items: [text('劳动力是班组的当天作业容量，不会结转。默认完整班组日换算为 8 点劳动力，未来也可能遇到人员缺勤。', 'Labor is the crew’s daily capacity and does not carry over. A full crew-day equals 8 Labor in this demo; absences may reduce availability.'), text('每天早会固定消耗 1 点经理注意力。安排多个普通任务、调整未来排程和接受建议，不再逐次扣注意力。', 'The meeting costs 1 Attention. Routine tasks, schedule adjustments and accepting proposals do not cost attention per click.'), text('进入复杂经理判断消耗 1；经理亲自巡查消耗 2、劳动力为 0、巡查可信度为 100%。附加现场操作仍需正常劳动力。', 'Complex manager review costs 1 Attention. Personal inspection costs 2 Attention, no Labor and yields 100% observation confidence. Attached fieldwork still uses normal labor.'), text('注意力用完仍能继续：安排普通任务，或把复杂判断交给团队、智能助手。', 'Zero attention does not stop play. Schedule routine work or delegate complex decisions to the team or AI assistant.')], target: 'map', link: text('查看容量与排程', 'Open capacity and scheduling') },
+      card(
+        "production-units",
+        "从生产单元开始",
+        "Start with production units",
+        "生产单元是可以分别查看状态和安排工作的管理对象。你不必每天检查所有单元，但要分清哪些情况已经了解，哪些地方缺少信息。",
+        "A production unit is a management area with its own conditions and work plans. You need not inspect every unit daily, but should distinguish known conditions from information gaps.",
+        [
+          [
+            "左侧查看天气、状态、证据和日历；右侧安排资源、任务并查看结算。",
+            "Review weather, conditions, evidence and the calendar on the left; arrange resources and work and review settlement on the right.",
+          ],
+          [
+            "左右多选同步。可以为多个生产单元安排同一项工作。",
+            "Selections stay synchronized on both sides. Plan the same work for multiple units.",
+          ],
+        ],
+      ),
     ],
   },
   {
-    id: 'evidence-actions', title: text('观察、判断与行动', 'Evidence, judgment and action'),
-    description: text('风险告诉你“可能有多严重”；可信度和新鲜度告诉你“现在知道多少”。三者必须一起看。', 'Risk indicates possible severity. Confidence and freshness indicate how much you know. Read all three together.'),
+    id: "daily-management",
+    title: text("每天怎样进行", "The daily management cycle"),
+    description: text(
+      "早会是正式排程窗口。执行后回顾结果，次日再作调整。",
+      "The morning meeting is the scheduling window. Review execution results and adjust the next morning.",
+    ),
     cards: [
-      { id: 'information', title: text('低风险不一定代表安全', 'Low estimated risk does not guarantee safety'), items: [text('高风险、高可信度、信息新鲜：问题比较明确，应优先评估处理。', 'High risk, high confidence and fresh evidence indicate a clear problem worth prioritizing.'), text('低风险、低可信度或信息陈旧：可能只是不了解现状，应考虑重新观察。', 'Low risk with low confidence or old data may mean you do not know the current condition. Consider observing again.'), text('没有有效信息时保持未知，不把未知当作正常。信息新鲜度表示上次获得有效信息是当天还是几天前，不是作物长了几天。水分信息与作物、设备信息分开显示。', 'No valid information means unknown, not normal. Information freshness shows whether information was obtained today or days ago, not how old the crop is. Water and crop/equipment information are shown separately.'), text('传感器能更新水分信息，但不能代替叶片、果实和设备的现场检查。', 'Sensors renew water information but cannot replace field inspection of leaves, fruit and equipment.') ] },
-      { id: 'information-updates', title: text('信息新鲜度：这些信息是什么时候获得的？', 'Information freshness: when was the evidence obtained?'), body: text('信息新鲜度显示“当天／几天前／暂无信息”，指最新有效信息的更新时间，不是作物生长了几天。', 'Information freshness shows Today, days ago or No information yet. It describes the latest valid evidence update, not the crop’s age.'), items: [
-        text('一次有效巡查同时检查水分、作物和设备，所以巡查后这两类信息的更新时间一致。', 'A valid inspection checks water, crops and equipment together. Both information categories have the same update time immediately after inspection.'),
-        text('传感器之后可以单独更新水分信息，但无法观察叶片、果实、病虫害和设备的全部现场情况，所以不会刷新作物与设备信息。', 'Sensors can subsequently update water information on their own. They cannot observe all leaf, fruit, pest, disease and equipment conditions, so they do not renew crop and equipment information.'),
-        text('例如昨天巡查、今天传感器更新：水分信息更新显示“当天”，作物与设备信息更新显示“1天前”。这不是记录矛盾，而是两类信息更新来源不同。', 'For example, yesterday’s inspection followed by today’s sensor update shows water information as Today and crop/equipment information as 1 day ago. The dates differ because the sources update different information.'),
-        text('没有有效信息时显示“暂无信息”，不能据此认为状态正常；信息新鲜度与可信度分别判断。', 'No valid evidence is shown as No information yet and cannot be treated as a normal condition. Judge freshness and confidence separately.'),
-      ], target: 'map', link: text('查看信息更新时间', 'Review information update times') },
-      { id: 'separate-signs', title: text('为什么未见病虫害，水分胁迫仍然很高？', 'Why can water stress be high without pest or disease signs?'), body: text('病虫害迹象与水分胁迫描述不同问题。巡查未见病斑或虫害，并不代表供水正常，也不等于整株健康。水分胁迫是估计，先看来源、日期和证据，再判断是否需要检查或处理。', 'Pest/disease signs and water stress describe different problems. No observed lesions or pests does not confirm adequate water or overall plant health. Water stress is an estimate: check its source, age and evidence before choosing inspection or action.'), items: [text('巡查可信度来自最近一次有效巡查；水分估计可信度可在单元详情查看，传感器更新不会提高巡查可信度。', 'Inspection confidence comes from the latest valid inspection. Water-estimate confidence appears in unit details; sensor updates do not raise inspection confidence.'), text('旧报告没有单独记录病虫害时显示“未单独记录”；没有巡查时显示“暂无巡查”，不把未知当作正常。', 'Old reports without explicit pest/disease findings show Not separately recorded. Missing inspections show No inspection yet. Unknown does not mean normal.'), text('当前版本的系统灌溉仍是一次作业；尚未提供持续供水策略，也未模拟完整根区盐分、过湿和配方调整。', 'System irrigation in this version is still a single operation. Sustained watering strategies, full root-zone salinity, excess moisture and recipe adjustments are not yet simulated.')], target: 'map', link: text('查看状态与证据', 'Review conditions and evidence') },
-      { id: 'actions', title: text('把巡查和现场工作组合起来', 'Combine inspection with fieldwork'), body: text('田间巡查同时检查作物与设备。可附加人工补水、喷施、维修或传感器迁移，表单会实时汇总资源需求。', 'An inspection checks crops and equipment together. Attach manual watering, spraying, repair or sensor relocation; the form totals resource needs.'), items: [text('系统灌溉依赖正式设备；人工补水消耗更多人力，但可以绕过故障设备。', 'System irrigation depends on irrigation equipment. Manual watering uses more labor but can bypass a fault.'), text('同一单元、同一日期、同一作业只允许安排一次，组合任务里的作业也算。', 'Each action is unique per unit and date, including actions inside combined tasks.'), text('移动传感器必须通过正式迁移任务重新部署；固定传感器不能随意移动。', 'Move mobile sensors through a relocation task. Fixed sensors cannot be relocated.'), text('可靠度描述长期表现，设备状态描述当前是否能正常工作；二者独立。', 'Reliability describes long-term performance; current status indicates whether equipment works now. They are independent.')], target: 'map', link: text('安排一项任务', 'Schedule a task') },
-      { id: 'delegation', title: text('复杂问题可以委派，但建议不是自动执行', 'Delegate complex decisions, then accept or reject'), items: [text('团队和智能助手根据当时可见的信息、天气、阶段、资源与排程生成建议，并自动记录理由。', 'The team and AI use visible evidence, weather, stage, resources and schedule, recording a rationale automatically.'), text('智能助手只提供接受或拒绝；接受不消耗经理注意力，仍需通过资源检查。', 'AI proposals offer Accept or Reject. Accepting costs no attention but still requires available resources.'), text('原场景的下属汇报可能次日送达，未经批准不会排程。', 'Some authored team proposals arrive the next day and do not schedule work without approval.'), text('决策历史保留观测、决策者、当时理由、关联作业与结果，便于季末复盘。', 'History links evidence, decision maker, rationale, operations and results for end-of-season review.')], target: 'decisions', link: text('打开决策中心', 'Open decision center') },
+      card(
+        "first-day",
+        "按一天的顺序操作",
+        "Work through a day",
+        "观察、判断、安排、执行和复盘形成连续的管理循环。",
+        "Observation, assessment, planning, execution and review form one continuous management cycle.",
+        [
+          [
+            "早会：回顾昨日结果、天气、新报告和已有排程，安排今天或未来的工作。",
+            "Morning meeting: review yesterday’s results, weather, reports and existing plans; schedule today or later.",
+          ],
+          [
+            "执行：人员和设备按计划开展工作。当日排程关闭，新发现留到下一次早会处理。",
+            "Execution: people and equipment follow the plan. Scheduling closes; new findings wait for the next meeting.",
+          ],
+          [
+            "日终复盘：核对完成、受阻、资源消耗和需要验证的效果。",
+            "End-of-day review: check completion, blocked work, resources used and effects requiring verification.",
+          ],
+          [
+            "次日早会：接收新信息，结合昨日结果重新判断。",
+            "Next morning: receive new evidence and reassess using yesterday’s results.",
+          ],
+        ],
+      ),
     ],
   },
   {
-    id: 'situations', title: text('你会遇到的经营情况', 'Situations you may encounter'),
-    description: text('玩法没有唯一正确答案。重点是解释你的优先级，观察措施产生的结果，再据此调整。', 'There is no single correct solution. Explain your priorities, observe the effect of actions, and adjust.'),
+    id: "evidence-actions",
+    title: text("先看状态，再看证据", "Read conditions together with evidence"),
+    description: text(
+      "信息内容、采样时间和来源要一起看。未知不能当作正常。",
+      "Read findings, sampling time and source together. Unknown does not mean normal.",
+    ),
     cards: [
-      { id: 'fault-water', title: text('缺水遇上设备故障', 'Water stress meets equipment failure'), body: text('先确认缺水与故障的证据，再比较先维修、人工补水或维修加补水。系统灌溉可能受阻，人工补水则会挤占其他任务的人力。', 'Check evidence of stress and failure. Compare repair first, manual watering, or combined repair and watering. System irrigation may be blocked; manual watering competes for labor.') },
-      { id: 'stale-evidence', title: text('报告不一致或信息过期', 'Reports disagree or information becomes stale'), body: text('传感器、现场人员和延迟实验室报告可能指向不同结论。比较观测时间、来源和可信度，决定是否先巡查；不要把刚送达的旧采样当作今天的状态。', 'Sensors, field teams and delayed lab reports may disagree. Compare observation time, source and confidence. A newly delivered old sample is not necessarily current evidence.') },
-      { id: 'capacity', title: text('多个单元争用同一批资源', 'Units compete for the same resources'), body: text('同时看今天和未来容量，把紧急风险、敏感生长阶段与已有任务一起排序。改期或取消较低优先级任务，释放劳动力、水量和预留资源。', 'Review today and future capacity. Prioritize urgent risks and sensitive stages alongside existing plans. Reschedule or cancel lower priorities to release reservations.') },
-      { id: 'feedback', title: text('补水后的估计为什么还会变化', 'Why the estimate changes after watering'), body: text('当天执行后先显示预计影响。次日会结合用水量、天气、蒸散、生长阶段、设备表现和有效观测正式更新；预计改善不等于未来持续安全。', 'Execution shows an expected impact first. The next morning combines water applied, weather, evapotranspiration, stage, equipment and valid observations. Improvement does not guarantee lasting safety.') },
-      { id: 'finance', title: text('现金、费用和预计收入要分开', 'Separate cash, costs and forecast revenue'), body: text('作业实际执行后记账，应急采购要确认付款。预计收入是估算，尚未成为现金；季末从财务、水资源、作物信息、作业与决策五个维度复盘。', 'Operating costs are booked on execution; purchases require payment confirmation. Forecast revenue is not cash. Review finance, water, crop information, operations and decisions at season end.'), target: 'management', link: text('查看经营管理', 'Open Management') },
+      card(
+        "information",
+        "分清不同状态",
+        "Separate the different conditions",
+        "水分胁迫、病虫害迹象和设备状态描述不同问题。未见病虫害不代表供水正常；长期可靠也不代表设备今天没有故障。",
+        "Water stress, pest/disease signs and equipment status describe different issues. No visible pests does not confirm adequate water; long-term reliability does not confirm that equipment works today.",
+        [
+          [
+            "水分分值是状态评估，不是土壤含水率或缺水概率。",
+            "A water-stress score is an assessment, not soil water content or the probability of a shortage.",
+          ],
+          [
+            "生长阶段依据已收到的阶段报告；报告陈旧时应留意是否需要重新确认。",
+            "Growth stage is based on a delivered stage report; old reports may need confirmation.",
+          ],
+        ],
+      ),
+      card(
+        "information-updates",
+        "这些信息是什么时候获得的？",
+        "When was this information obtained?",
+        "信息新鲜度显示“当天／几天前／暂无信息”，表示有效信息距今多久，不是作物长了几天。",
+        "Information freshness shows Today, days ago or No information yet. It is evidence age, not crop age.",
+        [
+          [
+            "一次完整巡查同步检查水分、作物与设备。传感器之后可以单独更新水分信息。",
+            "A full inspection checks water, crops and equipment together. Sensors may subsequently update water information independently.",
+          ],
+          [
+            "例如昨天巡查、今天传感器更新：水分信息为当天，病虫害与设备巡查信息为1天前。",
+            "Yesterday’s inspection followed by today’s sensor update means water information is current today while crop/equipment inspection information is one day old.",
+          ],
+          [
+            "巡查可信度来自最近一次巡查报告。传感器更新不会提高这份报告的可信度。",
+            "Inspection confidence belongs to the latest inspection report. Sensor updates do not increase that report’s confidence.",
+          ],
+          [
+            "没有新观测时，主值和证据曲线停在最后观测。旧值不变不代表农场没变，当前状态可能尚未确认。",
+            "Without new evidence, the main value and evidence curve stop at the last observation. An unchanged old value does not mean the farm stopped changing; current conditions may be unconfirmed.",
+          ],
+        ],
+      ),
+    ],
+  },
+  {
+    id: "people-resources",
+    title: text("谁负责什么", "People and resources"),
+    description: text(
+      "根据任务实际使用的人员和设备预约容量，不把不同人员混成一个名额。",
+      "Reserve the people and equipment that actually perform each task; keep separate personnel capacities distinct.",
+    ),
+    cards: [
+      card(
+        "resources",
+        "人员容量与经理注意力",
+        "Personnel capacity and manager attention",
+        "劳动力是班组当天的工作容量，不能结转。独立维修人员另有自己的可用人员日。经理注意力用于亲自判断和现场投入，不按点击次数计算。",
+        "Labor is a crew’s daily work capacity and does not carry over. Independent technicians have their own available person-days. Manager attention covers personal judgment and field involvement, rather than clicks.",
+        [
+          [
+            "农场经理确定优先级、安排工作，可以亲自判断复杂问题或委派分析。",
+            "The manager sets priorities and plans work, personally reviewing complex issues or delegating analysis.",
+          ],
+          [
+            "田间班组执行巡查、人工补水、喷施和任务指定的普通维修。专业维修事件使用独立维修人员。",
+            "Field crews perform inspections, manual watering, spraying and assigned routine repairs. Specialist repair events use independent technicians.",
+          ],
+          [
+            "早会固定消耗1点注意力；普通排程不额外消耗。复杂经理判断消耗1点，经理亲自巡查消耗2点且不占班组劳动力，附加现场工作仍需人员。",
+            "The meeting costs 1 Attention; routine scheduling costs no extra. Complex manager review costs 1; personal inspection costs 2 with no crew labor, while attached fieldwork still needs personnel.",
+          ],
+          [
+            "注意力用完仍可安排普通工作，或把复杂判断交给团队与智能助手。",
+            "At zero attention you can still plan routine work or delegate complex judgment to the team or AI assistant.",
+          ],
+        ],
+      ),
+    ],
+  },
+  {
+    id: "planning",
+    title: text("怎样安排工作", "Planning work"),
+    description: text(
+      "先选对象与日期，再核对资源和已有预约。",
+      "Select the target and date, then check resources and existing reservations.",
+    ),
+    cards: [
+      card(
+        "actions",
+        "选择、组合与调整任务",
+        "Select, combine and adjust tasks",
+        "选择一个或多个单元，为今天或未来日期安排任务。确认前核对本次需求、预计费用和排程后剩余容量。",
+        "Select one or more units and schedule today or later. Before confirming, check requirements, expected costs and capacity remaining after this plan.",
+        [
+          [
+            "巡查可以附加人工补水、喷施、维修或传感器迁移，组合中的每项工作都核算资源并保留结果。",
+            "Attach manual watering, spraying, repair or sensor relocation to inspection. Each attached action uses resources and keeps its own result.",
+          ],
+          [
+            "系统灌溉是一项安排在指定日期的作业，依赖灌溉设备。人工补水需要更多人力，可以绕过故障设备。",
+            "System irrigation is an operation on a chosen date and depends on irrigation equipment. Manual watering requires more labor and can bypass a fault.",
+          ],
+          [
+            "同一单元、日期和作业类型只能安排一次。批量任务全部通过资源检查后才会创建。",
+            "Each action is unique per unit and date. A batch is created only if every task passes resource checks.",
+          ],
+          [
+            "尚未执行的任务可保留、改期或取消。取消释放预约，不产生观测。固定传感器不能迁移，移动传感器通过正式任务迁移。",
+            "Keep, reschedule or cancel unexecuted work. Cancellation releases reservations and produces no observation. Fixed sensors stay in place; move mobile sensors through a scheduled task.",
+          ],
+        ],
+      ),
+    ],
+  },
+  {
+    id: "decisions-reports",
+    title: text("遇到事件怎样决策", "Decisions and reports"),
+    description: text(
+      "先比较证据和可行方案，再明确下一步。",
+      "Compare evidence and feasible options, then record the next step.",
+    ),
+    cards: [
+      card(
+        "delegation",
+        "处理当前待表态事件",
+        "Address pending decisions",
+        "查看事件相关单元的趋势、证据和资源条件。所有当前待表态事件处理后，才能开始执行。",
+        "Review the affected units’ trends, evidence and resource constraints. Address every pending decision before execution.",
+        [
+          [
+            "可以安排处理、先调查、委派等待、暂缓并设复查日，或明确不采取行动。等待也需要明确记录。",
+            "Act, investigate first, delegate and wait, defer to a review date or explicitly take no action. Waiting is a decision that must be recorded.",
+          ],
+          [
+            "调查和委派需要时间；已明确等待的事件不会阻止进入下一天。复查到期或新建议送达时再作判断。",
+            "Investigations and delegation take time. An explicit wait does not block tomorrow. Reassess when a review is due or a proposal arrives.",
+          ],
+          [
+            "团队和智能助手提供建议，不自动执行。智能助手的建议可以接受或拒绝；接受不扣注意力，仍需通过资源检查。",
+            "Team and AI proposals do not execute automatically. Accept or reject AI advice; accepting uses no attention but still requires available resources.",
+          ],
+        ],
+        "decisions",
+      ),
+      card(
+        "sampling",
+        "农艺师与检测报告",
+        "Agronomists and laboratory reports",
+        "农艺师负责采样、组织送检和解读，实验室负责样品检测。报告的采样时间与送达时间分别记录。",
+        "Agronomists sample, arrange testing and interpret results; laboratories analyze samples. Sampling and delivery times are recorded separately.",
+        [
+          [
+            "例如，3月4日采样、3月6日收到的送检报告，反映采样当时的情况，不是6日的实时状态。",
+            "For example, a report sampled on March 4 and delivered on March 6 describes conditions at sampling time, not live conditions on delivery day.",
+          ],
+          [
+            "报告可靠度不是风险概率。对比更新的观测、不同来源和采样时间，再判断是否需要检查或处理。",
+            "Report reliability is not risk probability. Compare newer observations, sources and sampling times before deciding whether to inspect or act.",
+          ],
+          [
+            "人员例行水分抽测提供局部信息，不等于一次完整的作物与设备巡查。",
+            "Routine field water checks provide partial evidence and are not full crop/equipment inspections.",
+          ],
+        ],
+      ),
+    ],
+  },
+  {
+    id: "review",
+    title: text("执行后怎样复盘", "Reviewing execution"),
+    description: text(
+      "比较计划与实际，把未确认的问题带到次日早会。",
+      "Compare plan and execution and carry unconfirmed issues into the next meeting.",
+    ),
+    cards: [
+      card(
+        "feedback",
+        "核对结果，再判断效果",
+        "Check execution before judging effects",
+        "作业完成与问题得到控制是两件事。复盘同时看完成情况、受阻原因、实际消耗与后续验证。",
+        "Completed work and controlled risk are different outcomes. Review completion, blocking causes, actual resource use and follow-up evidence.",
+        [
+          [
+            "补水后显示预计影响，不会凭空生成一条巡查记录。是否恢复，需要后续有效观测确认。",
+            "Watering shows an expected effect without creating an inspection record. Subsequent valid evidence must confirm recovery.",
+          ],
+          [
+            "费用按实际执行记账。预计收入不是已到账现金；将生产状况、信息覆盖、资源使用与经营成本一起考虑。",
+            "Book costs on actual execution. Forecast revenue is not cash received. Consider production, evidence coverage, resource use and operating costs together.",
+          ],
+          [
+            "缺水遇上故障时比较维修与人工补水；报告冲突时先比较时间与来源；资源不足时调整优先级或未来排程。",
+            "When stress meets a fault, compare repair and manual watering. When reports disagree, compare time and source. When resources are tight, change priorities or future plans.",
+          ],
+        ],
+      ),
     ],
   },
 ];

@@ -1,3 +1,6 @@
+import { latestWaterEvidence } from '../domain/managementEvidence.js';
+import { pendingDecisionItems } from '../domain/decisionReadiness.js';
+import { operationUsage } from '../domain/operationUsage.js';
 import { createFarm, createWorld, createCrew, createFinance, createScenario, createProductionUnit, createCropInstance, createPerson, createResource,
   createObservation, createDecisionCase, createOperation, detectResourceConflicts, isCapacityResource,
   availableCapacity, recordExpense, DECISION_ACTIONS } from '../domain/index.js';
@@ -137,6 +140,11 @@ export class SimulationEngine {
     const result = clone(view);
     result.beliefs = result.beliefs.filter(b => b.actorId === actorId);
     result.actorId = actorId;
+    // Reproject old cached views using only the evidence available in that view.
+    if (result.management) {
+      if (result.management.units.some(u => u.water.evidenceVersion !== 1)) result.management.units = result.management.units.map(u => ({ ...u, water: latestWaterEvidence(result.observations, u.id, result.currentDate) }));
+      result.management.pendingDecisions ??= pendingDecisionItems(result.decisionCases, result.management.decisions, result.currentDate);
+    }
     return result;
   }
 
@@ -675,7 +683,8 @@ export class SimulationEngine {
   previewOperation(plan, date, crewId = '') {
     try {
       const normalized = { ...this.#resourcePlan(clone(plan), crewId ? { crewId } : {}), id: this.#operationId().id, plannedStart: date };
-      const quote = { labor: normalized.plannedDurationDays * this.#state.management.dailyLabor,
+      const quote = { labor: operationUsage(normalized, this.#state.farmState.resources, this.#state.management.dailyLabor).labor,
+        personnel: operationUsage(normalized, this.#state.farmState.resources, this.#state.management.dailyLabor).personnel,
         water: normalized.resourceQuantities?.water || 0,
         staffDays: normalized.plannedDurationDays, unitIds: normalized.productionUnitIds,
         cost: normalized.assignedResourceIds.reduce((sum, id) => { const r = this.#state.farmState.resources.find(r => r.id === id); return sum + (r && isCapacityResource(r) ? r.operatingCost * normalized.plannedDurationDays : 0); }, 0) };

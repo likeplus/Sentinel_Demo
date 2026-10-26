@@ -20,7 +20,7 @@ const observations = [
   createObservation({id:'old-water:PU-05',productionUnitId:'PU-05',sourceType:'worker',sourceId:'prior-week-check',variable:'waterStress',value:0.2,unit:'ratio',uncertainty:0.2,reliability:0.65,observedAt:'2026-02-24',availableAt:'2026-03-01',freshness:3}),
   createObservation({id:'pu03-sensor-day4',productionUnitId:'PU-03',sourceType:'sensor',sourceId:'sensor-pu03',variable:'waterStress',value:0.85,unit:'ratio',uncertainty:0.1,reliability:0.8,observedAt:'2026-03-04',availableAt:'2026-03-04',freshness:3}),
   createObservation({id:'pu03-worker-day4',productionUnitId:'PU-03',sourceType:'worker',sourceId:'worker-pu03',variable:'waterStress',value:0.2,unit:'ratio',uncertainty:0.2,reliability:0.7,observedAt:'2026-03-04',availableAt:'2026-03-04',freshness:3}),
-  createObservation({id:'pu03-lab-day4',productionUnitId:'PU-03',sourceType:'lab',sourceId:'lab-pu03',variable:'waterStress',value:0.7,unit:'ratio',uncertainty:0.03,reliability:0.95,observedAt:'2026-03-04',availableAt:'2026-03-06',freshness:5}),
+  createObservation({id:'pu03-lab-day4',productionUnitId:'PU-03',sourceType:'lab',sourceId:'lab-pu03',responsiblePersonId:'agronomist',responsibleRole:'agronomist',scenarioReport:true,variable:'waterStress',value:0.7,unit:'ratio',uncertainty:0.03,reliability:0.95,observedAt:'2026-03-04',availableAt:'2026-03-06',freshness:5}),
 ];
 const investigation = (id, productionUnitIds) => ({
   id, type:'gather_information', label:'安排现场检查', description:'占用班组四分之一天；执行后次日送达报告，当前不能看到结果。',

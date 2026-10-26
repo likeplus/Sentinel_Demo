@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs/promises');
 const assert = require('node:assert/strict');
@@ -22,7 +23,7 @@ const puppeteer = require('puppeteer');
     const click = async id => {
       await page.waitForSelector(selector(id));
       await page.$eval(selector(id), element => { for (let p = element.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(element.tagName === 'SUMMARY' && p === element.parentElement)) p.open = true; element.scrollIntoView({ block: 'center' }); });
-      await page.click(selector(id));
+      await page.click(selector(id)); await idle(page);
     };
     const text = id => page.$eval(selector(id), element => element.textContent);
     const rawSave = () => page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'));

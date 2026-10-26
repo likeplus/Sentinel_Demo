@@ -12,6 +12,7 @@ function knownStatus(unit, overlay) {
 }
 
 function waterColor(unit) {
+  if (unit.water?.value == null || unit.water?.stale) return 'unknown';
   const risk = unit.risk?.level;
   if (risk === 'high' || risk === 'critical') return 'high';
   if (risk === 'medium' || risk === 'moderate' || risk === 'elevated') return 'medium';
@@ -76,7 +77,7 @@ function UnitShape({ unit, prefix, selected, overlay, layers = [], onSelect, agg
         <circle className="farm-map__task-badge" cx={bounds.x + scale * 0.115} cy={bounds.y + scale * 0.115} r={scale * 0.09} />
         <text className="farm-map__task-count" x={bounds.x + scale * 0.115} y={bounds.y + scale * 0.15} fontSize={detailSize}>{t(count)}</text>
       </g>)}
-      {t(layers.map((layer, i) => {const level = layer === 'water' ? waterLevel(unit.water.value === null ? null : unit.water.value * 100) : layer === 'crop' ? inspectionEvidence(unit).level : layer === 'equipment' ? statusColor(unit.equipment?.status) : unit.water.freshness > 90 ? 'unknown' : unit.water.freshness >= 5 ? 'severe' : unit.water.freshness >= 3 ? 'significant' : unit.water.freshness > 0 ? 'mild' : 'normal';return <g key={layer} data-layer-status={layer}><title>{layer === 'freshness' ? `${t('水分信息更新')}: ${t(informationAge(unit.water.freshness, Boolean(unit.water.observedAt)))}` : t(layer)}</title><circle cx={bounds.x + scale * .13 + i * scale * .21} cy={bounds.y + bounds.height - scale * .22} r={scale * .045} fill={{ normal: '#3d8f65', mild: '#d0ad2a', significant: '#e78235', severe: '#ce4f48', unknown: '#a8b1ab' }[level]} /><text x={bounds.x + scale * .13 + i * scale * .21} y={bounds.y + bounds.height - scale * .09} fontSize={detailSize * .7}>{t({ water: 'Water', crop: '病虫', freshness: '信息', equipment: 'Equip' }[layer])}</text></g>;}))}<polygon className="farm-map__selection" points={points.map((point) => point.join(',')).join(' ')} aria-hidden="true" />
+      {t(layers.map((layer, i) => {const level = layer === 'water' ? waterLevel(unit.water.value === null || unit.water.stale ? null : unit.water.value * 100) : layer === 'crop' ? inspectionEvidence(unit).level : layer === 'equipment' ? statusColor(unit.equipment?.status) : unit.water.freshness > 90 ? 'unknown' : unit.water.freshness >= 5 ? 'severe' : unit.water.freshness >= 3 ? 'significant' : unit.water.freshness > 0 ? 'mild' : 'normal';return <g key={layer} data-layer-status={layer}><title>{layer === 'freshness' ? `${t('水分信息更新')}: ${t(informationAge(unit.water.freshness, Boolean(unit.water.observedAt)))}` : t(layer)}</title><circle cx={bounds.x + scale * .13 + i * scale * .21} cy={bounds.y + bounds.height - scale * .22} r={scale * .045} fill={{ normal: '#3d8f65', mild: '#d0ad2a', significant: '#e78235', severe: '#ce4f48', unknown: '#a8b1ab' }[level]} /><text x={bounds.x + scale * .13 + i * scale * .21} y={bounds.y + bounds.height - scale * .09} fontSize={detailSize * .7}>{t({ water: 'Water', crop: '病虫', freshness: '信息', equipment: 'Equip' }[layer])}</text></g>;}))}<polygon className="farm-map__selection" points={points.map((point) => point.join(',')).join(' ')} aria-hidden="true" />
     </g>);
 
 }

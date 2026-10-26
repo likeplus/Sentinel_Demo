@@ -93,6 +93,7 @@ describe('Full-history save storage and localized units', () => {
     const c = createGameController({ feedback: true, storage });
     for (let day = 0; day < 28; day++) {
       expect(c.scheduleBatch(input(c, ['PU-01', 'PU-02', 'PU-03', 'PU-04'], ['inspection'])).accepted).toBe(true);
+      for (const d of view(c).management.pendingDecisions.filter(d => d.kind === 'case')) expect(c.decide(d.id, {type:'no_action'}).accepted).toBe(true);
       c.executeDay(); c.executeDay(); expect(c.getSnapshot().storageStatus.state).toBe('saved');
     }
     expect(view(c).operations).toHaveLength(112);

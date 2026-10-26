@@ -1,15 +1,16 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 // A manager's playthrough uses real controls; save reads verify domain effects.
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const puppeteer = require('puppeteer');
 (async () => {
-  const out = process.env.WORKSPACE_SCREENSHOTS || 'docs/validation/screenshots/workspace';
+  const out = process.env.WORKSPACE_SCREENSHOTS || '/tmp/sentinel-workspace-regression';
   await fs.mkdir(out, { recursive: true });
   const browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const p = await browser.newPage(), errors = [], checks = [];
   p.on('pageerror', e => errors.push(e.message));
   const sel = id => `[data-testid="${id}"]`;
-  const click = async id => { await p.waitForSelector(sel(id)); await p.$eval(sel(id), e => { for (let parent = e.parentElement; parent; parent = parent.parentElement) if (parent.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && parent === e.parentElement)) parent.open = true; e.scrollIntoView({ block: 'center' }); }); await p.click(sel(id)); };
+  const click = async id => { await p.waitForSelector(sel(id)); await p.$eval(sel(id), e => { for (let parent = e.parentElement; parent; parent = parent.parentElement) if (parent.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && parent === e.parentElement)) parent.open = true; e.scrollIntoView({ block: 'center' }); }); await p.click(sel(id)); await idle(p); };
   const fill = async (id, value) => p.$eval(sel(id), (el, value) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, value); el.dispatchEvent(new Event('input', { bubbles: true })); }, value);
   const raw = () => p.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'));
   const { decodeSave } = await import('../src/game/persistence.js');

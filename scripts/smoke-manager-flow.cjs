@@ -1,3 +1,4 @@
+const { idle, respondToPending } = require('./game-browser-helpers.cjs');
 // Exercise selection and planning through real controls, without injecting game state.
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -8,7 +9,7 @@ const puppeteer = require('puppeteer');
   const page = await browser.newPage(), errors = [], out = '/tmp/sentinel-manager-flow';
   page.on('pageerror', e => errors.push(e.message)); await fs.mkdir(out, { recursive: true });
   const sel = id => `[data-testid="${id}"]`;
-  const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await page.click(sel(id)); };
+  const click = async id => { await page.waitForSelector(sel(id)); await page.$eval(sel(id), e => { for (let p = e.parentElement; p; p = p.parentElement) if (p.tagName === 'DETAILS' && !(e.tagName === 'SUMMARY' && p === e.parentElement)) p.open = true; e.scrollIntoView({ block: 'center' }); }); await page.click(sel(id)); await idle(page); };
   const raw = () => page.evaluate(() => localStorage.getItem('sentinel:farm-game:save:v1'));
   const checkpoint = async () => decodeSave(await raw()).checkpoint;
   const count = async n => assert.equal(await page.$eval(sel('selection-count'), e => Number(e.textContent.match(/\d+/)[0])), n);
@@ -39,7 +40,7 @@ const puppeteer = require('puppeteer');
     let phaseClicks = 2; await page.$eval(sel('unit-selection'), e => [...e.querySelectorAll('button')].find(b => /清空|Clear/.test(b.textContent)).click());
     while (!(await checkpoint()).state.ended) {
       await click('tab-map'); await click('selection-PU-01'); await click('selection-PU-02'); await click('selection-PU-03'); await click('selection-PU-04');
-      await click('batch-plan'); await click('task-confirm'); await click('advance-day'); await click('advance-day'); phaseClicks += 2;
+      await click('batch-plan'); await click('task-confirm'); await respondToPending(page); await click('advance-day'); await click('advance-day'); phaseClicks += 2;
       // New day retains the chosen operation group; clear using the existing selection control.
       if (!(await checkpoint()).state.ended) { await click('tab-map'); await page.$eval(sel('unit-selection'), e => [...e.querySelectorAll('button')].find(b => /清空|Clear/.test(b.textContent)).click()); }
       assert.equal(await page.$eval(sel('save-status'), e => e.textContent.includes('进度已保存')), true);
