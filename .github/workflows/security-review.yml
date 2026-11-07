@@ -51,6 +51,9 @@ jobs:
         run: python3 scripts/security/review.py
       - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
+      - name: Report existing dependency vulnerabilities (requires separate remediation)
+        continue-on-error: true
+        run: python3 scripts/security/audit_dependencies.py
       - name: Build actual Pages artifact
         run: npm run build:pages
       - name: Scan everything that will be deployed

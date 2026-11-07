@@ -3,6 +3,11 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+import hashlib
+import json
+import shutil
+import subprocess
 import zipfile
 
 spec = importlib.util.spec_from_file_location("review", Path(__file__).with_name("review.py"))
@@ -69,6 +74,28 @@ class ReviewTests(unittest.TestCase):
                     relative = line[6:-1]
                     self.assertFalse(Path(relative).is_absolute())
                     self.assertTrue((manifest.parent / relative).exists(), str(manifest))
+
+    def test_missing_gitleaks_report_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(review.shutil, "which", return_value="/fake/gitleaks"), \
+                    patch.object(review.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)):
+                findings, _ = review.scan_gitleaks(Path(tmp))
+            self.assertEqual(findings[0]["rule"], "gitleaks-missing-report")
+
+    def test_real_gitleaks_redaction_without_using_credential(self):
+        binary = shutil.which("gitleaks")
+        self.assertIsNotNone(binary, "Install the checksum-verified scanner before running these tests")
+        fake = "gh" + "p_" + hashlib.sha256(b"synthetic-only-no-service").hexdigest()[:36]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "fixture.txt").write_text(fake)
+            report = root / "report.json"
+            result = subprocess.run([binary, "dir", str(root), "--redact=100", "--no-banner",
+                                     "--report-format=json", "--report-path=" + str(report)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertTrue(json.loads(report.read_text()))
+            self.assertNotIn(fake, result.stdout + result.stderr + report.read_text())
 
     def test_no_raw_contact_in_report(self):
         value = "reviewer" + "@" + "private.invalid"

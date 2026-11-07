@@ -161,7 +161,9 @@ def scan_gitleaks(root, directory=None):
             result = subprocess.run(args, cwd=root, capture_output=True, timeout=900)
             if result.returncode not in (0, 1):
                 return [finding("gitleaks-execution-failed", "(scanner)")], 0
-            raw = json.loads(report.read_text()) if report.exists() else []
+            if not report.exists():
+                return [finding("gitleaks-missing-report", "(scanner)")], 0
+            raw = json.loads(report.read_text())
             if result.returncode == 1 and not raw:
                 return [finding("gitleaks-missing-report", "(scanner)")], 0
             for entry in raw or []:
@@ -191,7 +193,11 @@ def main():
     if not directory:
         emails = git(root, "log", "--all", "--format=%ae%n%ce").decode().splitlines()
         personal = {e.lower() for e in emails if e and not e.endswith(("users.noreply.github.com", "@github.com"))}
-        metadata = {"nonAnonymousGitEmailIdentities": len(personal)}
+        metadata = {"nonAnonymousGitEmailIdentities": len(personal),
+                    "reachableCommits": int(git(root, "rev-list", "--all", "--count").strip()),
+                    "shallowHistory": git(root, "rev-parse", "--is-shallow-repository").strip() == b"true"}
+        if metadata["shallowHistory"]:
+            findings.append(finding("incomplete-shallow-history", "(git metadata)"))
         if personal:
             notes.append(finding("historical-commit-email-metadata", "(git metadata)", severity="review"))
     report = {"files": files, "findings": findings, "reviewNotes": notes, "gitMetadata": metadata}
