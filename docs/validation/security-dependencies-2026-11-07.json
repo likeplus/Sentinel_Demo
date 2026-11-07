@@ -1,0 +1,858 @@
+{
+  "summary": {
+    "info": 0,
+    "low": 2,
+    "moderate": 5,
+    "high": 20,
+    "critical": 2,
+    "total": 29
+  },
+  "packages": [
+    {
+      "name": "@babel/core",
+      "severity": "low",
+      "direct": false,
+      "range": "<=7.29.0",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1123528,
+          "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8",
+          "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "name": "@humanfs/node",
+      "severity": "moderate",
+      "direct": false,
+      "range": "<0.16.8",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1158499,
+          "url": "https://github.com/advisories/GHSA-p498-v437-472g",
+          "title": "humanfs: Recursive copy follows symlinked files and copies data from outside the source tree",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "@vitest/mocker",
+      "severity": "moderate",
+      "direct": false,
+      "range": "<=4.1.11",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.7",
+        "isSemVerMajor": false
+      },
+      "advisories": [
+        {
+          "id": 1193684,
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "moderate"
+        },
+        {
+          "id": 1242767,
+          "url": "https://github.com/advisories/GHSA-qxg6-89mg-rqv8",
+          "title": "Vitest: Code injection via unauthenticated manual mock registration",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "axios",
+      "severity": "high",
+      "direct": false,
+      "range": "<=0.32.0",
+      "fixAvailable": {
+        "name": "google-tts-api",
+        "version": "0.0.6",
+        "isSemVerMajor": true
+      },
+      "advisories": [
+        {
+          "id": 1097679,
+          "url": "https://github.com/advisories/GHSA-wf5p-g6vw-rhxx",
+          "title": "Axios Cross-Site Request Forgery Vulnerability",
+          "severity": "moderate"
+        },
+        {
+          "id": 1111034,
+          "url": "https://github.com/advisories/GHSA-jr5f-v2jv-69x6",
+          "title": "axios Requests Vulnerable To Possible SSRF and Credential Leakage via Absolute URL",
+          "severity": "high"
+        },
+        {
+          "id": 1116672,
+          "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5",
+          "title": "Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117573,
+          "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63",
+          "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117575,
+          "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7",
+          "title": "Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
+          "severity": "high"
+        },
+        {
+          "id": 1117579,
+          "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw",
+          "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
+          "severity": "low"
+        },
+        {
+          "id": 1117582,
+          "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm",
+          "title": "Axios: no_proxy bypass via IP alias allows SSRF",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117586,
+          "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx",
+          "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117588,
+          "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99",
+          "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117590,
+          "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf",
+          "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
+          "severity": "high"
+        },
+        {
+          "id": 1117592,
+          "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9",
+          "title": "Axios: Header Injection via Prototype Pollution",
+          "severity": "high"
+        },
+        {
+          "id": 1117594,
+          "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c",
+          "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
+          "severity": "moderate"
+        },
+        {
+          "id": 1117857,
+          "url": "https://github.com/advisories/GHSA-43fc-jf86-j433",
+          "title": "Axios is Vulnerable to Denial of Service via __proto__ Key in mergeConfig",
+          "severity": "high"
+        },
+        {
+          "id": 1119403,
+          "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx",
+          "title": "Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain",
+          "severity": "moderate"
+        },
+        {
+          "id": 1120124,
+          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9",
+          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+          "severity": "moderate"
+        },
+        {
+          "id": 1120546,
+          "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf",
+          "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
+          "severity": "high"
+        },
+        {
+          "id": 1120644,
+          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v",
+          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
+          "severity": "high"
+        },
+        {
+          "id": 1120646,
+          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc",
+          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
+          "severity": "high"
+        },
+        {
+          "id": 1120648,
+          "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw",
+          "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
+          "severity": "high"
+        },
+        {
+          "id": 1120651,
+          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg",
+          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+          "severity": "moderate"
+        },
+        {
+          "id": 1123825,
+          "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv",
+          "title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
+          "severity": "high"
+        },
+        {
+          "id": 1147948,
+          "url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx",
+          "title": "Axios: Prototype pollution gadgets can alter axios request construction",
+          "severity": "moderate"
+        },
+        {
+          "id": 1153181,
+          "url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq",
+          "title": "Axios: Nested axios option objects can consume polluted prototype values",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "baseline-browser-mapping",
+      "severity": "moderate",
+      "direct": false,
+      "range": ">=2.0.0 <2.11.0",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1193686,
+          "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv",
+          "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "brace-expansion",
+      "severity": "high",
+      "direct": false,
+      "range": "<=1.1.20",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1115540,
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "severity": "moderate"
+        },
+        {
+          "id": 1123897,
+          "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+          "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "severity": "high"
+        },
+        {
+          "id": 1130588,
+          "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+          "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "severity": "high"
+        },
+        {
+          "id": 1130737,
+          "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+          "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "severity": "high"
+        },
+        {
+          "id": 1240100,
+          "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+          "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "severity": "moderate"
+        },
+        {
+          "id": 1240104,
+          "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+          "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "severity": "high"
+        },
+        {
+          "id": 1240108,
+          "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+          "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "browserslist",
+      "severity": "high",
+      "direct": false,
+      "range": "<=4.28.6",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1153171,
+          "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+          "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+          "severity": "high"
+        },
+        {
+          "id": 1153172,
+          "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+          "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "esbuild",
+      "severity": "low",
+      "direct": false,
+      "range": "0.27.3 - 0.28.0",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1120680,
+          "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr",
+          "title": "esbuild allows arbitrary file read when running the development server on Windows",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "name": "extract-zip",
+      "severity": "high",
+      "direct": false,
+      "range": "*",
+      "fixAvailable": {
+        "name": "puppeteer",
+        "version": "25.16.0",
+        "isSemVerMajor": true
+      },
+      "advisories": [
+        {
+          "id": 1139346,
+          "url": "https://github.com/advisories/GHSA-jmr9-qjv8-65gv",
+          "title": "extract-zip unvalidated symlink path traversal",
+          "severity": "high"
+        },
+        {
+          "id": 1193685,
+          "url": "https://github.com/advisories/GHSA-7pqw-9j4j-h8q3",
+          "title": "extract-zip allows arbitrary file writes through symlink archive entries",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "flatted",
+      "severity": "high",
+      "direct": false,
+      "range": "<=3.4.1",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1114526,
+          "url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f",
+          "title": "flatted vulnerable to unbounded recursion DoS in parse() revive phase",
+          "severity": "high"
+        },
+        {
+          "id": 1241196,
+          "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh",
+          "title": "Prototype Pollution via parse() in NodeJS flatted",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "follow-redirects",
+      "severity": "moderate",
+      "direct": false,
+      "range": "<=1.15.11",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1244251,
+          "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653",
+          "title": "follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "google-tts-api",
+      "severity": "high",
+      "direct": true,
+      "range": ">=2.0.0",
+      "fixAvailable": {
+        "name": "google-tts-api",
+        "version": "0.0.6",
+        "isSemVerMajor": true
+      },
+      "advisories": []
+    },
+    {
+      "name": "js-yaml",
+      "severity": "high",
+      "direct": false,
+      "range": "4.0.0 - 4.3.1",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1121860,
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "severity": "moderate"
+        },
+        {
+          "id": 1123911,
+          "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+          "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "severity": "high"
+        },
+        {
+          "id": 1138115,
+          "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+          "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "severity": "high"
+        },
+        {
+          "id": 1193727,
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "nanoid",
+      "severity": "high",
+      "direct": false,
+      "range": "<=3.3.17",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1138811,
+          "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+          "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+          "severity": "high"
+        },
+        {
+          "id": 1139427,
+          "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+          "title": "nanoid: custom generators can loop indefinitely when size is zero",
+          "severity": "high"
+        },
+        {
+          "id": 1153189,
+          "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w",
+          "title": "nanoid: Integer Overflow or Wraparound",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "picomatch",
+      "severity": "high",
+      "direct": false,
+      "range": "4.0.0 - 4.0.3",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1115551,
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "moderate"
+        },
+        {
+          "id": 1115554,
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "postcss",
+      "severity": "high",
+      "direct": false,
+      "range": "<=8.5.22",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1117015,
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "severity": "moderate"
+        },
+        {
+          "id": 1124252,
+          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+          "severity": "high"
+        },
+        {
+          "id": 1130709,
+          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+          "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+          "severity": "moderate"
+        },
+        {
+          "id": 1139510,
+          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "puppeteer",
+      "severity": "high",
+      "direct": true,
+      "range": "18.2.0 - 20.1.1",
+      "fixAvailable": {
+        "name": "puppeteer",
+        "version": "25.16.0",
+        "isSemVerMajor": true
+      },
+      "advisories": []
+    },
+    {
+      "name": "puppeteer-core",
+      "severity": "high",
+      "direct": false,
+      "range": "<=22.11.1",
+      "fixAvailable": {
+        "name": "puppeteer",
+        "version": "25.16.0",
+        "isSemVerMajor": true
+      },
+      "advisories": []
+    },
+    {
+      "name": "puppeteer-screen-recorder",
+      "severity": "high",
+      "direct": true,
+      "range": ">=3.0.6",
+      "fixAvailable": {
+        "name": "puppeteer-screen-recorder",
+        "version": "3.0.5",
+        "isSemVerMajor": true
+      },
+      "advisories": []
+    },
+    {
+      "name": "react-router",
+      "severity": "high",
+      "direct": false,
+      "range": "6.0.0 - 7.18.1",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1120063,
+          "url": "https://github.com/advisories/GHSA-49rj-9fvp-4h2h",
+          "title": "React Router's vendored turbo-stream v2 allows arbitrary constructor invocation via TYPE_ERROR deserialization leading to Unauth RCE",
+          "severity": "high"
+        },
+        {
+          "id": 1120066,
+          "url": "https://github.com/advisories/GHSA-8646-j5j9-6r62",
+          "title": "React Router vulnerable to XSS in unstable RSC redirect handling via javascript: redirect targets",
+          "severity": "high"
+        },
+        {
+          "id": 1120069,
+          "url": "https://github.com/advisories/GHSA-8x6r-g9mw-2r78",
+          "title": "React Router vulnerable to DoS via unbounded path expansion in __manifest endpoint",
+          "severity": "high"
+        },
+        {
+          "id": 1120081,
+          "url": "https://github.com/advisories/GHSA-rxv8-25v2-qmq8",
+          "title": "React Router vulnerable to Denial of Service via reflected user input in single-fetch",
+          "severity": "high"
+        },
+        {
+          "id": 1120807,
+          "url": "https://github.com/advisories/GHSA-84g9-w2xq-vcv6",
+          "title": "React Router: Potential CSRF via PUT/PATCH/DELETE document requests",
+          "severity": "low"
+        },
+        {
+          "id": 1124268,
+          "url": "https://github.com/advisories/GHSA-wrjc-x8rr-h8h6",
+          "title": "React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass)",
+          "severity": "moderate"
+        },
+        {
+          "id": 1124271,
+          "url": "https://github.com/advisories/GHSA-h8fp-f39c-q6mh",
+          "title": "React Router: RSCErrorHandler Missing Protocol Validation (XSS)",
+          "severity": "moderate"
+        },
+        {
+          "id": 1124272,
+          "url": "https://github.com/advisories/GHSA-337j-9hxr-rhxg",
+          "title": "React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration",
+          "severity": "moderate"
+        },
+        {
+          "id": 1124276,
+          "url": "https://github.com/advisories/GHSA-chx6-hx7r-mcp5",
+          "title": "React Router: Unauthenticated Denial of Service via Inefficient Route Matching",
+          "severity": "high"
+        },
+        {
+          "id": 1136304,
+          "url": "https://github.com/advisories/GHSA-2j2x-hqr9-3h42",
+          "title": "React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation",
+          "severity": "moderate"
+        },
+        {
+          "id": 1138769,
+          "url": "https://github.com/advisories/GHSA-qwww-vcr4-c8h2",
+          "title": "React Router: RSC Mode CSRF Bypass Allows Action Execution Before 400 Response",
+          "severity": "high"
+        },
+        {
+          "id": 1193653,
+          "url": "https://github.com/advisories/GHSA-f22v-gfqf-p8f3",
+          "title": "React Router has stored XSS via unescaped Location header in prerendered redirect HTML",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "react-router-dom",
+      "severity": "high",
+      "direct": true,
+      "range": "7.0.0-pre.0 - 7.14.1",
+      "fixAvailable": true,
+      "advisories": []
+    },
+    {
+      "name": "source-map-js",
+      "severity": "high",
+      "direct": false,
+      "range": "1.0.0 - 1.2.1",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1241209,
+          "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q",
+          "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "tar-fs",
+      "severity": "high",
+      "direct": false,
+      "range": "2.0.0 - 2.1.3",
+      "fixAvailable": {
+        "name": "puppeteer",
+        "version": "25.16.0",
+        "isSemVerMajor": true
+      },
+      "advisories": [
+        {
+          "id": 1109532,
+          "url": "https://github.com/advisories/GHSA-vj76-c3g6-qr5v",
+          "title": "tar-fs has a symlink validation bypass if destination directory is predictable with a specific tarball",
+          "severity": "high"
+        },
+        {
+          "id": 1109543,
+          "url": "https://github.com/advisories/GHSA-8cj5-5rvv-wf4v",
+          "title": "tar-fs can extract outside the specified dir with a specific tarball",
+          "severity": "high"
+        },
+        {
+          "id": 1109552,
+          "url": "https://github.com/advisories/GHSA-pq67-2wwv-3xjx",
+          "title": "tar-fs Vulnerable to Link Following and Path Traversal via Extracting a Crafted tar File",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "tinypool",
+      "severity": "critical",
+      "direct": false,
+      "range": "<=2.1.1",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.7",
+        "isSemVerMajor": false
+      },
+      "advisories": [
+        {
+          "id": 1241260,
+          "url": "https://github.com/advisories/GHSA-5gmw-xhrv-c9v3",
+          "title": "Tinypool: Prototype Pollution gadget in worker options leads to Remote Code Execution",
+          "severity": "critical"
+        },
+        {
+          "id": 1241261,
+          "url": "https://github.com/advisories/GHSA-85c8-ppgw-ccpr",
+          "title": "Tinypool: Prototype Pollution Gadget to RCE in run() options",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "severity": "moderate",
+      "direct": true,
+      "range": "13.0.0",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1119442,
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "vite",
+      "severity": "high",
+      "direct": true,
+      "range": "7.0.0 - 7.3.6",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1116230,
+          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9",
+          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+          "severity": "moderate"
+        },
+        {
+          "id": 1116232,
+          "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r",
+          "title": "Vite: `server.fs.deny` bypassed with queries",
+          "severity": "high"
+        },
+        {
+          "id": 1116235,
+          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583",
+          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+          "severity": "high"
+        },
+        {
+          "id": 1120785,
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "severity": "moderate"
+        },
+        {
+          "id": 1242623,
+          "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+          "title": "launch-editor: escapeCmdArgs() omits % escaping on Windows",
+          "severity": "moderate"
+        },
+        {
+          "id": 1242652,
+          "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+          "title": "launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors",
+          "severity": "moderate"
+        },
+        {
+          "id": 1242659,
+          "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+          "title": "launch-editor: `fs.existsSync()` existence check can be bypassed on Windows",
+          "severity": "high"
+        },
+        {
+          "id": 1242725,
+          "url": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw",
+          "title": "Vite: Cross origin script execution through Vite custom middleware",
+          "severity": "low"
+        },
+        {
+          "id": 1242731,
+          "url": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22",
+          "title": "Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine",
+          "severity": "moderate"
+        },
+        {
+          "id": 1243433,
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "vitest",
+      "severity": "critical",
+      "direct": true,
+      "range": "<=4.1.10",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.7",
+        "isSemVerMajor": false
+      },
+      "advisories": [
+        {
+          "id": 1139528,
+          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp",
+          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+          "severity": "critical"
+        },
+        {
+          "id": 1193683,
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "moderate"
+        }
+      ]
+    },
+    {
+      "name": "ws",
+      "severity": "high",
+      "direct": false,
+      "range": "8.0.0 - 8.20.1",
+      "fixAvailable": {
+        "name": "puppeteer",
+        "version": "25.16.0",
+        "isSemVerMajor": true
+      },
+      "advisories": [
+        {
+          "id": 1118728,
+          "url": "https://github.com/advisories/GHSA-3h5v-q93c-6h6q",
+          "title": "ws affected by a DoS when handling a request with many HTTP headers",
+          "severity": "high"
+        },
+        {
+          "id": 1119108,
+          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+          "title": "ws: Uninitialized memory disclosure",
+          "severity": "moderate"
+        },
+        {
+          "id": 1123259,
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "name": "zod",
+      "severity": "high",
+      "direct": false,
+      "range": "<4.6.6",
+      "fixAvailable": true,
+      "advisories": [
+        {
+          "id": 1243066,
+          "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+          "title": "Zod can exhaust memory while validating oversized constrained collections",
+          "severity": "high"
+        }
+      ]
+    }
+  ]
+}

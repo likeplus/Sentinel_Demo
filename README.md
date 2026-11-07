@@ -120,3 +120,5 @@ npm run dev
 当前主工作台设计与验收：[Phase 2 农场经理主工作台](docs/11_Phase2_Manager_Workspace_Design.md)。下一步业务输入：[蓝莓持续策略问题清单](docs/12_Blueberry_Persistent_Policy_Questions.md)。
 
 最新每日流程、证据与人员分工：[设计说明](docs/13_Phase2_Daily_Workflow_And_Evidence_Design.md) · [验收与截图](docs/validation/day-flow-results.md)。
+
+安全与隐私：[审查报告](docs/validation/security-review-2026-11-07.md) · [每次 PR 必用的仓库技能](.agents/skills/security-review/SKILL.md)。所有 PR 自动运行 security-review；依赖风险与人工媒体复核限制见报告。

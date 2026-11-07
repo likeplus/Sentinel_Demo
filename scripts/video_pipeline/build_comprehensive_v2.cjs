@@ -425,7 +425,7 @@ function concatWithSilentAudio(videoPaths, outputPath) {
     const listPath = path.join(OUTPUT_DIR, 'concat_comprehensive_v2.txt');
     fs.writeFileSync(
       listPath,
-      videoPaths.map((video) => `file '${video.replace(/\\/g, '/')}'`).join('\n'),
+      videoPaths.map((video) => `file '${path.relative(OUTPUT_DIR, video).replace(/\\/g, '/')}'`).join('\n'),
       'utf8',
     );
 

@@ -21,7 +21,9 @@
     "build:pages": "node scripts/build-pages.mjs",
     "test:pages": "node scripts/smoke-pages.cjs",
     "test:game:workspace": "node scripts/smoke-workspace.cjs",
-    "test:game:dayflow": "node scripts/smoke-day-flow.cjs"
+    "test:game:dayflow": "node scripts/smoke-day-flow.cjs",
+    "test:security": "python3 -m unittest discover -s scripts/security -p 'test_*.py' -v",
+    "security:review": "python3 scripts/security/review.py"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

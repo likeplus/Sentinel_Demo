@@ -1,0 +1,31 @@
+{
+  "exceptions": [
+    {
+      "path": "package-lock.json",
+      "blob": "a3e92b3e73f658a7565d40a5f33e1e915bb449a3",
+      "rules": [
+        "email",
+        "phone"
+      ],
+      "reason": "npm registry package deprecation notice; public upstream maintainer contact"
+    },
+    {
+      "path": "BusinessPlan/LLM_in_Agriculture_Comprehensive_Review_Ranjan_et_al_extracted/full_text.txt",
+      "blob": "7a4259cc71f34cebfb111c9e093e0635ffc25849",
+      "rules": [
+        "email",
+        "phone"
+      ],
+      "reason": "Published research correspondence, not application user data"
+    },
+    {
+      "path": "BusinessPlan/LLM_in_Agriculture_Comprehensive_Review_Ranjan_et_al.pdf",
+      "blob": "392c3e2ffdaff98b793f5fc23aa25539f03b424d",
+      "rules": [
+        "email",
+        "phone"
+      ],
+      "reason": "Original published research; preserve attribution and correspondence"
+    }
+  ]
+}

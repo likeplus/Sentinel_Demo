@@ -230,7 +230,7 @@ function concatVideos(videoPaths, outPath) {
 
         // create concat.txt
         const listPath = path.join(OUTPUT_DIR, 'concat.txt');
-        const listContent = videoPaths.map(p => `file '${p.replace(/\\/g, '/')}'`).join('\n');
+        const listContent = videoPaths.map(p => `file '${path.relative(OUTPUT_DIR, p).replace(/\\/g, '/')}'`).join('\n');
         fs.writeFileSync(listPath, listContent);
 
         ffmpeg()

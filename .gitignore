@@ -22,3 +22,26 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Credentials and private browser/session state
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+.npmrc
+.pypirc
+.aws/
+.auth/
+playwright/.auth/
+credentials*.json
+id_rsa
+id_ed25519
+*.key
+*.p12
+*.pfx
+
+# Raw scan reports and machine-specific browser/video output
+.security/
+.playwright-cli/
+scripts/video_pipeline/output*/concat*.txt
